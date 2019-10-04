@@ -1,4 +1,4 @@
-# Native Audio 📻
+# Native Audio
 
 An audio plugin for Flutter which makes use of the native Android and iOS audio players, handling playback, notifications and external controls (such as bluetooth).
 

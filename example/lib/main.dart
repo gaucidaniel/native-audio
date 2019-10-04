@@ -59,14 +59,14 @@ class _MyAppState extends State<MyApp> {
 
     _audio.onStopped = () {
       setState(() {
-        _isPlaying = false;
+        _isLoaded = false;
         _isPlaying = false;
       });
     };
 
     _audio.onCompleted = () {
       setState(() {
-        _isPlaying = false;
+        _isLoaded = false;
         _isPlaying = false;
       });
     };
