@@ -14,6 +14,7 @@ import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugin.common.PluginRegistry.Registrar
 import io.flutter.view.FlutterNativeView
 import studio.darngood.soundbite.isServiceRunning
+import java.lang.IllegalStateException
 
 class NativeAudioPlugin(
         private val context: Context,
@@ -38,9 +39,7 @@ class NativeAudioPlugin(
         private const val NATIVE_METHOD_RELEASE = "release"
 
         private const val FLUTTER_METHOD_ON_LOADED = "onLoaded"
-        private const val FLUTTER_METHOD_ON_LOADED_ARG_DURATION = "duration"
         private const val FLUTTER_METHOD_ON_PROGRESS_CHANGED = "onProgressChanged"
-        private const val FLUTTER_METHOD_ON_PROGRESS_CHANGED_ARG_CURRENT_TIME = "currentTime"
         private const val FLUTTER_METHOD_ON_RESUMED = "onResumed"
         private const val FLUTTER_METHOD_ON_PAUSED = "onPaused"
         private const val FLUTTER_METHOD_ON_STOPPED = "onStopped"
@@ -64,36 +63,40 @@ class NativeAudioPlugin(
     private var audioService: AudioService? = null
 
     override fun onMethodCall(call: MethodCall, result: Result) {
-        if (flutterView == null) {
-            // Register all plugins for the application with our new FlutterNativeView's
-            // plugin registry.
-            // Other plugins will not work when running in the background if this isn't done
-            flutterView = FlutterNativeView(context, true)
-            pluginRegistrantCallback?.registerWith(flutterView!!.pluginRegistry)
-        }
-
-        when (call.method) {
-            NATIVE_METHOD_PLAY -> {
-                withArgument(call, NATIVE_METHOD_PLAY_ARG_URL) { url: String ->
-                    // Get optional arguments
-                    val title = call.argument<String>(NATIVE_METHOD_PLAY_ARG_TITLE)
-                    val artist = call.argument<String>(NATIVE_METHOD_PLAY_ARG_ARTIST)
-                    val album = call.argument<String>(NATIVE_METHOD_PLAY_ARG_ALBUM)
-                    val imageUrl = call.argument<String>(NATIVE_METHOD_PLAY_ARG_IMAGE_URL)
-
-                    // Call service
-                    withService {
-                        it.play(url, title, artist, album, imageUrl)
-                    }
+        withService { service ->
+            if (flutterView == null) {
+                // Register all plugins for the application with our new FlutterNativeView's
+                // plugin registry.
+                // Other plugins will not work when running in the background if this isn't done
+                flutterView = FlutterNativeView(service, false).apply {
+                    pluginRegistrantCallback?.registerWith(pluginRegistry)
+                            ?: throw IllegalStateException("No pluginRegistrantCallback has been set. Make sure you call NativeAudioPlugin.setPluginRegistrantCallback(this) in your application's onCreate.")
                 }
             }
-            NATIVE_METHOD_RESUME -> withService { it.resume() }
-            NATIVE_METHOD_PAUSE -> withService { it.pause() }
-            NATIVE_METHOD_STOP -> withService { it.stop() }
-            NATIVE_METHOD_RELEASE -> releaseAudioService()
-            NATIVE_METHOD_SEEK_TO -> {
-                withArgument(call, NATIVE_METHOD_SEEK_TO_ARG_TIME) { timeInMillis: Int ->
-                    withService { it.seekTo(timeInMillis.toLong()) }
+
+            when (call.method) {
+                NATIVE_METHOD_PLAY -> {
+                    withArgument(call, NATIVE_METHOD_PLAY_ARG_URL) { url: String ->
+                        // Get optional arguments
+                        val title = call.argument<String>(NATIVE_METHOD_PLAY_ARG_TITLE)
+                        val artist = call.argument<String>(NATIVE_METHOD_PLAY_ARG_ARTIST)
+                        val album = call.argument<String>(NATIVE_METHOD_PLAY_ARG_ALBUM)
+                        val imageUrl = call.argument<String>(NATIVE_METHOD_PLAY_ARG_IMAGE_URL)
+
+                        // Call service
+                        withService {
+                            it.play(url, title, artist, album, imageUrl)
+                        }
+                    }
+                }
+                NATIVE_METHOD_RESUME -> service.resume()
+                NATIVE_METHOD_PAUSE -> service.pause()
+                NATIVE_METHOD_STOP -> service.stop()
+                NATIVE_METHOD_RELEASE -> releaseAudioService()
+                NATIVE_METHOD_SEEK_TO -> {
+                    withArgument(call, NATIVE_METHOD_SEEK_TO_ARG_TIME) { timeInMillis: Int ->
+                        service.seekTo(timeInMillis.toLong())
+                    }
                 }
             }
         }
@@ -187,7 +190,6 @@ class NativeAudioPlugin(
             }
         }
     }
-
 
     private fun releaseAudioService() {
         context.stopService(Intent(context, AudioService::class.java))
