@@ -16,12 +16,10 @@ class NativeAudio {
   static const _nativeMethodSeekToArgTimeInMillis = "timeInMillis";
   static const _nativeMethodRelease = "release";
   static const _flutterMethodOnLoaded = "onLoaded";
-  static const _flutterMethodOnLoadedArgDuration = "duration";
   static const _flutterMethodOnResumed = "onResumed";
   static const _flutterMethodOnPaused = "onPaused";
   static const _flutterMethodOnStopped = "onStopped";
   static const _flutterMethodOnProgressChanged = "onProgressChanged";
-  static const _flutterMethodOnProgressChangedArgCurrentTime = "currentTime";
   static const _flutterMethodOnCompleted = "onCompleted";
 
   Function(Duration) onLoaded;
