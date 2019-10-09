@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="studio.darngood.native_audio_example">
+    package="com.danielgauci.native_audio_example">
 
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
@@ -40,7 +40,7 @@
             </intent-filter>
         </receiver>
 
-        <service android:name="studio.darngood.native_audio.AudioService">
+        <service android:name="com.danielgauci.native_audio.AudioService">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
                 <action android:name="android.media.browse.MediaBrowserService" />

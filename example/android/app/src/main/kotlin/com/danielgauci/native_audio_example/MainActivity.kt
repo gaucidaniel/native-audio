@@ -1,4 +1,4 @@
-package studio.darngood.native_audio_example
+package com.danielgauci.native_audio_example
 
 import android.os.Bundle
 

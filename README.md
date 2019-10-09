@@ -49,7 +49,7 @@ geofencing:
     </intent-filter>
 </receiver>
 
-<service android:name="studio.darngood.native_audio.AudioService">
+<service android:name="com.danielgauci.native_audio.AudioService">
     <intent-filter>
         <action android:name="android.intent.action.MEDIA_BUTTON" />
         <action android:name="android.media.browse.MediaBrowserService" />

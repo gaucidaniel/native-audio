@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 
 class NativeAudio {
-  static const _channel = const MethodChannel('studio.darngood.soundbite/native_audio');
+  static const _channel = const MethodChannel('com.danielgauci.native_audio');
 
   static const _nativeMethodPlay = "play";
   static const _nativeMethodPlayArgUrl = "url";

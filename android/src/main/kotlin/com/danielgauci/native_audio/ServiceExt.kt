@@ -1,4 +1,4 @@
-package studio.darngood.soundbite
+package com.danielgauci.native_audio
 
 import android.app.ActivityManager
 import android.content.Context

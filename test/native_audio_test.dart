@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:native_audio/native_audio.dart';
 
 void main() {
-  const MethodChannel channel = MethodChannel('studio.darngood.soundbite/native_audio');
+  const MethodChannel channel = MethodChannel('com.danielgauci.native_audio');
 
   setUp(() {
     channel.setMockMethodCallHandler((MethodCall methodCall) async {

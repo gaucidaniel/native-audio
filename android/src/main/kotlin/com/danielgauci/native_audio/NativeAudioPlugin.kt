@@ -1,4 +1,4 @@
-package studio.darngood.native_audio
+package com.danielgauci.native_audio
 
 import android.content.ComponentName
 import android.content.Context
@@ -13,8 +13,6 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugin.common.PluginRegistry.Registrar
 import io.flutter.view.FlutterNativeView
-import studio.darngood.soundbite.isServiceRunning
-import java.lang.IllegalStateException
 
 class NativeAudioPlugin(
         private val context: Context,
@@ -23,7 +21,7 @@ class NativeAudioPlugin(
 
     companion object {
 
-        private const val CHANNEL = "studio.darngood.soundbite/native_audio"
+        private const val CHANNEL = "com.danielgauci.native_audio"
 
         private const val NATIVE_METHOD_PLAY = "play"
         private const val NATIVE_METHOD_PLAY_ARG_URL = "url"

@@ -1,4 +1,4 @@
-package studio.darngood.native_audio
+package com.danielgauci.native_audio
 
 import android.media.MediaPlayer
 import android.os.Handler

@@ -1,4 +1,4 @@
-package studio.darngood.native_audio
+package com.danielgauci.native_audio
 
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit
 class AudioService : Service() {
 
     companion object {
-        private const val MEDIA_SESSION_TAG = "studio.darngood.soundbite"
+        private const val MEDIA_SESSION_TAG = "com.danielgauci.native_audio"
 
         private const val NOTIFICATION_ID = 10
 

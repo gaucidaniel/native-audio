@@ -1,9 +1,9 @@
-package studio.darngood.native_audio_example
+package com.danielgauci.native_audio_example
 
 import io.flutter.app.FlutterApplication
 import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugins.GeneratedPluginRegistrant
-import studio.darngood.native_audio.NativeAudioPlugin
+import com.danielgauci.native_audio.NativeAudioPlugin
 
 class Application : FlutterApplication(), PluginRegistry.PluginRegistrantCallback {
 
