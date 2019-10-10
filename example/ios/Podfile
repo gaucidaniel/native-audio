@@ -1,3 +1,5 @@
+use_frameworks!
+
 # Using a CDN with CocoaPods 1.7.2 or later can save a lot of time on pod installation, but it's experimental rather than the default.
 # source 'https://cdn.cocoapods.org/'
 

@@ -1,5 +1,6 @@
 name: native_audio_example
 description: Demonstrates how to use the native_audio plugin.
+version: 0.0.1
 publish_to: 'none'
 
 environment:

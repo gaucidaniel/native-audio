@@ -66,4 +66,4 @@ As well as the following lines to setup the permissions required:
 
 ### iOS
 
-Coming very soon 🍏
+No setup is required for iOS 🍏
