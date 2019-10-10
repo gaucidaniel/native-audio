@@ -35,7 +35,8 @@ class NativeAudio {
       switch (methodCall.method) {
         case _flutterMethodOnLoaded:
           int durationInMillis = methodCall.arguments;
-          if (onLoaded != null) onLoaded(Duration(milliseconds: durationInMillis));
+          if (onLoaded != null)
+            onLoaded(Duration(milliseconds: durationInMillis));
           break;
 
         case _flutterMethodOnResumed:
@@ -56,7 +57,8 @@ class NativeAudio {
 
         case _flutterMethodOnProgressChanged:
           int currentTimeInMillis = methodCall.arguments;
-          if (onProgressChanged != null) onProgressChanged(Duration(milliseconds: currentTimeInMillis));
+          if (onProgressChanged != null)
+            onProgressChanged(Duration(milliseconds: currentTimeInMillis));
           break;
       }
 
@@ -64,7 +66,8 @@ class NativeAudio {
     });
   }
 
-  void play(String url, {String title, String artist, String album, String imageUrl}) {
+  void play(String url,
+      {String title, String artist, String album, String imageUrl}) {
     _invokeNativeMethod(
       _nativeMethodPlay,
       arguments: <String, dynamic>{
@@ -92,7 +95,9 @@ class NativeAudio {
   void seekTo(Duration time) {
     _invokeNativeMethod(
       _nativeMethodSeekTo,
-      arguments: <String, dynamic>{_nativeMethodSeekToArgTimeInMillis: time.inMilliseconds},
+      arguments: <String, dynamic>{
+        _nativeMethodSeekToArgTimeInMillis: time.inMilliseconds
+      },
     );
   }
 
@@ -100,7 +105,8 @@ class NativeAudio {
     _invokeNativeMethod(_nativeMethodRelease);
   }
 
-  Future _invokeNativeMethod(String method, {Map<String, dynamic> arguments}) async {
+  Future _invokeNativeMethod(String method,
+      {Map<String, dynamic> arguments}) async {
     try {
       await _channel.invokeMethod(method, arguments);
     } on PlatformException catch (e) {

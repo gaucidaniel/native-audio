@@ -31,10 +31,18 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Column(
           children: <Widget>[
-            if (!_isLoaded) MaterialButton(child: Text("Play"), onPressed: () => _playSampleAudio()),
-            if (_isLoaded) MaterialButton(child: Text("Stop"), onPressed: () => _audio.stop()),
-            if (!_isPlaying) MaterialButton(child: Text("Resume"), onPressed: () => _audio.resume()),
-            if (_isPlaying) MaterialButton(child: Text("Pause"), onPressed: () => _audio.pause()),
+            if (!_isLoaded)
+              MaterialButton(
+                  child: Text("Play"), onPressed: () => _playSampleAudio()),
+            if (_isLoaded)
+              MaterialButton(
+                  child: Text("Stop"), onPressed: () => _audio.stop()),
+            if (!_isPlaying)
+              MaterialButton(
+                  child: Text("Resume"), onPressed: () => _audio.resume()),
+            if (_isPlaying)
+              MaterialButton(
+                  child: Text("Pause"), onPressed: () => _audio.pause()),
           ],
         ),
       ),
@@ -73,10 +81,12 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _playSampleAudio() {
-    _audio.play("https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3",
+    _audio.play(
+        "https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3",
         title: "How The Fashion Industry Is Responding To Climate Change",
         album: "Science Friday",
         artist: "WNYC Studio",
-        imageUrl: "https://www.sciencefriday.com/wp-content/uploads/2019/09/clothes-close-min.jpg");
+        imageUrl:
+            "https://www.sciencefriday.com/wp-content/uploads/2019/09/clothes-close-min.jpg");
   }
 }
