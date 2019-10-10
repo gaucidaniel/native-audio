@@ -1,3 +1,7 @@
+## 0.0.4
+
+* Initial iOS support
+
 ## 0.0.3
 
 * Change package name from studio.darngood to com.danielgauci
