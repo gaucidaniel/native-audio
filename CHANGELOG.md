@@ -1,3 +1,7 @@
+## 0.1-dev
+
+* Fixed issue causing Android notification to re-appear when closed
+
 ## 0.0.4
 
 * Initial iOS support
