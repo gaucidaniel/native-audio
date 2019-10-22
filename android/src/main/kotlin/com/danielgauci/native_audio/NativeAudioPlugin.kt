@@ -59,6 +59,7 @@ class NativeAudioPlugin(
 
     private var flutterView: FlutterNativeView? = null
     private var audioService: AudioService? = null
+    private var serviceConnection: ServiceConnection? = null
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         withService { service ->
@@ -110,7 +111,7 @@ class NativeAudioPlugin(
     private fun withService(withService: (AudioService) -> Unit) {
         if (audioService == null) {
             // Audio service not available yes, bind and setup
-            val serviceConnection: ServiceConnection = object : ServiceConnection {
+            serviceConnection = object : ServiceConnection {
                 override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
                     val service = (binder as AudioService.AudioServiceBinder).getService()
                     bindAudioServiceWithChannel(service)
@@ -190,6 +191,7 @@ class NativeAudioPlugin(
     }
 
     private fun releaseAudioService() {
+        serviceConnection?.let { context.unbindService(it) }
         context.stopService(Intent(context, AudioService::class.java))
     }
 }

@@ -14,7 +14,12 @@ class AudioPlayer(
     private val progressCallbackHandler: Handler by lazy { Handler() }
     private val progressCallback: Runnable by lazy {
         Runnable {
-            onProgressChanged?.invoke(mediaPlayer.currentPosition.toLong())
+            val progress = mediaPlayer.currentPosition.toLong()
+            if (progress != currentProgress) {
+                onProgressChanged?.invoke(progress)
+                currentProgress = progress
+            }
+
             progressCallbackHandler.postDelayed(progressCallback, TimeUnit.SECONDS.toMillis(1))
         }
     }
@@ -48,6 +53,7 @@ class AudioPlayer(
         }
     }
 
+    private var currentProgress = 0L
     private var isLoaded = false
 
     fun play(url: String) {

@@ -140,7 +140,7 @@ class AudioService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         MediaButtonReceiver.handleIntent(session, intent)
-        return super.onStartCommand(intent, flags, startId)
+        return START_NOT_STICKY
     }
 
     fun play(
@@ -250,6 +250,7 @@ class AudioService : Service() {
                 .setOngoing(true)
                 .setSmallIcon(R.drawable.play)
                 .setContentIntent(contentIntent)
+                .setDeleteIntent(stopIntent)
                 .setContentTitle(title)
                 .setContentText(album)
                 .setSubText(artist)
