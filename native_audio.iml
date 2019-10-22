@@ -11,6 +11,23 @@
       <excludeFolder url="file://$MODULE_DIR$/example/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/example/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/build" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/example/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/example/build/app/intermediates/flutter/debug/android-arm/flutter_assets/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/example/build/app/intermediates/flutter/debug/android-arm64/flutter_assets/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/example/build/app/intermediates/flutter/debug/android-x86/flutter_assets/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/example/build/app/intermediates/merged_assets/debug/mergeDebugAssets/out/flutter_assets/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/example/build/flutter_assets/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/example/build/ios/Debug-iphonesimulator/Runner.app/Frameworks/App.framework/flutter_assets/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/example/build/ios/Release-iphoneos/Runner.app/Frameworks/App.framework/flutter_assets/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/example/build/ios/iphoneos/Runner.app/Frameworks/App.framework/flutter_assets/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/example/build/ios/iphonesimulator/Runner.app/Frameworks/App.framework/flutter_assets/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/native_audio/example/ios/Flutter/App.framework/flutter_assets/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/Flutter/App.framework/flutter_assets/packages" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Dart SDK" level="project" />
