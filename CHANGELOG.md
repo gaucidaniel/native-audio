@@ -1,4 +1,4 @@
-## 0.1-dev
+## 0.0.5
 
 * Fixed issue causing Android notification to re-appear when closed
 
