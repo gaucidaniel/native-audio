@@ -8,6 +8,8 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.media.AudioManager
+import android.media.session.PlaybackState
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -17,6 +19,8 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.annotation.ColorInt
 import androidx.core.app.NotificationCompat
+import androidx.media.AudioFocusRequestCompat
+import androidx.media.AudioManagerCompat
 import androidx.media.session.MediaButtonReceiver
 import androidx.palette.graphics.Palette
 import com.bumptech.glide.Glide
@@ -47,6 +51,7 @@ class AudioService : Service() {
     private var currentPlaybackState = PlaybackStateCompat.STATE_STOPPED
     private var currentPositionInMillis = 0L
     private var durationInMillis = 0L
+    private var resumeOnAudioFocus = false
     private var isNotificationShown = false
     private var notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
 
@@ -133,6 +138,40 @@ class AudioService : Service() {
         )
     }
 
+    private val audioFocusRequest by lazy {
+        AudioFocusRequestCompat.Builder(AudioManagerCompat.AUDIOFOCUS_GAIN)
+                .setOnAudioFocusChangeListener { audioFocus ->
+                    val isPlaying = currentPlaybackState == PlaybackState.STATE_PLAYING
+                    when (audioFocus) {
+                        AudioManager.AUDIOFOCUS_GAIN -> {
+                            if (resumeOnAudioFocus && !isPlaying) {
+                                resume()
+                                resumeOnAudioFocus = false
+                            } else if (isPlaying) {
+                                // TODO: Set volume to full
+                            }
+                        }
+                        AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                            // TODO: Set volume to duck
+                        }
+                        AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                            if (isPlaying) {
+                                resumeOnAudioFocus = true
+                                pause()
+                            }
+                        }
+                        AudioManager.AUDIOFOCUS_LOSS -> {
+                            resumeOnAudioFocus = false
+                            stop()
+                        }
+                    }
+                }
+                .build()
+    }
+
+    private val audioManager by lazy { getSystemService(Context.AUDIO_SERVICE) as AudioManager }
+    private val headsetManager by lazy { HeadsetManager() }
+    private val bluetoothManager by lazy { BluetoothManager() }
 
     override fun onBind(intent: Intent?): IBinder? {
         return binder
@@ -140,6 +179,17 @@ class AudioService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         MediaButtonReceiver.handleIntent(session, intent)
+
+        headsetManager.registerHeadsetPlugReceiver(
+                this,
+                onConnected = {},
+                onDisconnected = { pause() })
+
+        bluetoothManager.registerBluetoothReceiver(
+                this,
+                onConnected = {},
+                onDisconnected = { pause() })
+
         return START_NOT_STICKY
     }
 
@@ -150,6 +200,8 @@ class AudioService : Service() {
             album: String? = null,
             imageUrl: String? = null
     ) {
+        requestFocus()
+
         audioPlayer.play(url)
 
         session.isActive = true
@@ -165,6 +217,8 @@ class AudioService : Service() {
     }
 
     fun resume() {
+        requestFocus()
+
         audioPlayer.resume()
 
         currentPlaybackState = PlaybackStateCompat.STATE_PLAYING
@@ -180,6 +234,8 @@ class AudioService : Service() {
         updatePlaybackState()
 
         onPaused?.invoke()
+
+        if (!resumeOnAudioFocus) abandonFocus()
     }
 
     fun stop() {
@@ -192,6 +248,8 @@ class AudioService : Service() {
         session.isActive = false
 
         onStopped?.invoke()
+
+        abandonFocus()
     }
 
     fun seekTo(timeInMillis: Long) {
@@ -210,6 +268,14 @@ class AudioService : Service() {
         if (currentPositionInMillis - rewindTime > 0) {
             seekTo(currentPositionInMillis - rewindTime.toInt())
         }
+    }
+
+    private fun requestFocus() {
+        AudioManagerCompat.requestAudioFocus(audioManager, audioFocusRequest)
+    }
+
+    private fun abandonFocus() {
+        AudioManagerCompat.abandonAudioFocusRequest(audioManager, audioFocusRequest)
     }
 
     @TargetApi(26)
