@@ -60,6 +60,7 @@ geofencing:
 As well as the following lines to setup the permissions required:
 
 ```xml
+<uses-permission android:name="android.permission.BLUETOOTH" />
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 <uses-permission android:name="android.permission.WAKE_LOCK" />
 ```
