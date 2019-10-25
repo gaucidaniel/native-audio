@@ -1,3 +1,7 @@
+## 0.0.6
+
+* Fixed issue causing playback not to stop when Android notification is dismissed
+
 ## 0.0.5
 
 * Fixed issue causing Android notification to re-appear when closed
