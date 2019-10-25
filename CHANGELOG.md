@@ -1,3 +1,10 @@
+## 0.0.7
+
+* Properly handle Audio Focus [Android]
+* Pause playback when Bluetooth device disconnected [Android]
+* Pause playback when headset disconnected [Android]
+* Bump minSdk to 21 [Android]
+
 ## 0.0.6
 
 * Fixed issue causing playback not to stop when Android notification is dismissed
