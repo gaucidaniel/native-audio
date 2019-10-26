@@ -193,6 +193,11 @@ class AudioService : Service() {
         return START_NOT_STICKY
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        audioPlayer.release()
+    }
+
     fun play(
             url: String,
             title: String? = null,
@@ -250,6 +255,8 @@ class AudioService : Service() {
         onStopped?.invoke()
 
         abandonFocus()
+
+        stopSelf()
     }
 
     fun seekTo(timeInMillis: Long) {

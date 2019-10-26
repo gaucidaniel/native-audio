@@ -74,13 +74,15 @@ class AudioPlayer(
         }
     }
 
-    fun stop() {
+    fun stop(release: Boolean = true) {
         mediaPlayer.apply {
             if (isPlaying) {
                 this.stop()
                 this.reset()
             }
         }
+
+        if (release) release()
     }
 
     fun seekTo(timeInMillis: Long) {
@@ -90,6 +92,7 @@ class AudioPlayer(
     }
 
     fun release() {
+        stop(release = false)
         mediaPlayer.release()
     }
 
