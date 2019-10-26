@@ -1,3 +1,7 @@
+## 0.0.9
+
+* Optimize progress updates [Android]
+
 ## 0.0.8
 
 * Fix MediaPlayer not being released [Android]
