@@ -22,15 +22,18 @@ class AudioPlayer(
 
         if (mediaPlayer?.isPlaying == true) stop()
 
-        loadAudio(url) { resume() }
+        loadAudio(url)
+        startListeningForProgress()
     }
 
     fun resume() {
         mediaPlayer?.apply { if (isLoaded && !isPlaying) start() }
+        startListeningForProgress()
     }
 
     fun pause() {
         mediaPlayer?.apply { if (isPlaying) pause() }
+        stopListeningForProgress()
     }
 
     fun stop(release: Boolean = true) {
@@ -50,16 +53,13 @@ class AudioPlayer(
 
     fun release() {
         stop(release = false)
-
-        progressCallbackHandler?.removeCallbacks(progressCallback)
-        progressCallbackHandler = null
-        progressCallback = null
+        stopListeningForProgress()
 
         mediaPlayer?.release()
         mediaPlayer = null
     }
 
-    private fun loadAudio(url: String, onAudioLoaded: () -> Unit) {
+    private fun loadAudio(url: String) {
         mediaPlayer?.apply {
             setOnErrorListener { mp, what, extra ->
                 Log.d(this::class.java.simpleName, "OnError - Error code: $what Extra code: $extra")
@@ -83,10 +83,6 @@ class AudioPlayer(
                 // Notify callback
                 onLoaded?.invoke(duration.toLong())
 
-                // Setup progress callback
-                initProgressCallback()
-                progressCallbackHandler?.postDelayed(progressCallback, TimeUnit.SECONDS.toMillis(1))
-
                 // Update flags
                 isLoaded = true
             }
@@ -95,11 +91,11 @@ class AudioPlayer(
                 // Notify callback
                 onCompleted?.invoke()
 
-                // Clear progress callback
-                progressCallbackHandler?.removeCallbacks(progressCallback)
-
                 // Update flags
                 isLoaded = false
+
+                // Release
+                this@AudioPlayer.release()
             }
         }
     }
@@ -108,7 +104,7 @@ class AudioPlayer(
         progressCallbackHandler = Handler()
         progressCallback = Runnable {
             val mediaPlayer = this.mediaPlayer
-            if (mediaPlayer != null && mediaPlayer.isPlaying) {
+            if (mediaPlayer != null) {
                 val progress = mediaPlayer.currentPosition.toLong()
                 if (progress != currentProgress) {
                     onProgressChanged?.invoke(progress)
@@ -118,5 +114,20 @@ class AudioPlayer(
                 progressCallbackHandler?.postDelayed(progressCallback, TimeUnit.SECONDS.toMillis(1))
             }
         }
+    }
+
+    private fun startListeningForProgress() {
+        // Try to clear any existing listeners
+        stopListeningForProgress()
+
+        // Setup progress callback
+        initProgressCallback()
+        progressCallbackHandler?.postDelayed(progressCallback, TimeUnit.SECONDS.toMillis(1))
+    }
+
+    private fun stopListeningForProgress() {
+        progressCallbackHandler?.removeCallbacks(progressCallback)
+        progressCallbackHandler = null
+        progressCallback = null
     }
 }

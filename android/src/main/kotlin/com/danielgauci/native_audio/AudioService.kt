@@ -49,6 +49,7 @@ class AudioService : Service() {
     var onCompleted: (() -> Unit)? = null
 
     private var currentPlaybackState = PlaybackStateCompat.STATE_STOPPED
+    private var oldPlaybackState: Int = Int.MIN_VALUE
     private var currentPositionInMillis = 0L
     private var durationInMillis = 0L
     private var resumeOnAudioFocus = false
@@ -141,13 +142,12 @@ class AudioService : Service() {
     private val audioFocusRequest by lazy {
         AudioFocusRequestCompat.Builder(AudioManagerCompat.AUDIOFOCUS_GAIN)
                 .setOnAudioFocusChangeListener { audioFocus ->
-                    val isPlaying = currentPlaybackState == PlaybackState.STATE_PLAYING
                     when (audioFocus) {
                         AudioManager.AUDIOFOCUS_GAIN -> {
-                            if (resumeOnAudioFocus && !isPlaying) {
+                            if (resumeOnAudioFocus && !isPlaying()) {
                                 resume()
                                 resumeOnAudioFocus = false
-                            } else if (isPlaying) {
+                            } else if (isPlaying()) {
                                 // TODO: Set volume to full
                             }
                         }
@@ -155,7 +155,7 @@ class AudioService : Service() {
                             // TODO: Set volume to duck
                         }
                         AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                            if (isPlaying) {
+                            if (isPlaying()) {
                                 resumeOnAudioFocus = true
                                 pause()
                             }
@@ -247,7 +247,6 @@ class AudioService : Service() {
         audioPlayer.stop()
 
         currentPlaybackState = PlaybackStateCompat.STATE_STOPPED
-        updatePlaybackState()
 
         cancelNotification()
         session.isActive = false
@@ -422,6 +421,7 @@ class AudioService : Service() {
     }
 
     private fun cancelNotification() {
+        stopForeground(true)
         notificationManager.cancel(NOTIFICATION_ID)
         isNotificationShown = false
     }
@@ -436,24 +436,32 @@ class AudioService : Service() {
 
         // Try to update notification
         if (isNotificationShown) {
-            val isPlaying = playbackState.state == PlaybackStateCompat.STATE_PLAYING
+            val stateChanged = currentPlaybackState != oldPlaybackState
 
             // Update buttons based on current state
-            setNotificationButtons(notificationBuilder, isPlaying)
+            setNotificationButtons(notificationBuilder, isPlaying())
 
             // Allow notification to be dismissed if not playing
-            notificationBuilder.setOngoing(isPlaying)
+            notificationBuilder.setOngoing(isPlaying())
 
-            if (isPlaying) {
-                // Update notification with the updated builder
+            if (isPlaying() && stateChanged) {
+                // Update notification and ensure that notification is in foreground as it could have been stopped before
                 startForeground(NOTIFICATION_ID, notificationBuilder.build())
+            } else if (isPlaying()) {
+                // Notification was already in foreground, update with the latest information
+                notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
             } else {
                 // Allow notification to be dismissed if not playing by changing the service to a non-foreground service
                 stopForeground(false)
                 notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
             }
         }
+
+        // Update playback state
+        oldPlaybackState = currentPlaybackState
     }
+
+    private fun isPlaying() = currentPlaybackState == PlaybackStateCompat.STATE_PLAYING
 
     inner class AudioServiceBinder : Binder() {
 
