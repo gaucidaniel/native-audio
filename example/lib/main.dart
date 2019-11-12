@@ -60,7 +60,6 @@ class _MyAppState extends State<MyApp> {
     _audio.onResumed = () {
       setState(() => _isPlaying = true);
       _status = "resumed";
-      print("RESUME!!!");
     };
 
     _audio.onPaused = () {
@@ -68,15 +67,12 @@ class _MyAppState extends State<MyApp> {
         _isPlaying = false;
         _status = "paused";
       });
-      print("PAUSE!!!");
     };
 
     _audio.onPrevious = () {
       setState(() {
         _status = "previous";
       });
-      _playSampleAudio();
-      print("PREVIOUS!!!");
     };
 
     _audio.onNext = () {
@@ -84,7 +80,6 @@ class _MyAppState extends State<MyApp> {
         _status = "next";
       });
       _playSampleAudio2();
-      print("NEXT!!!");
     };
 
     _audio.onStopped = () {
