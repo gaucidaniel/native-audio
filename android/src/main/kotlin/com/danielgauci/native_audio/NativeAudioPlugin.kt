@@ -31,6 +31,8 @@ class NativeAudioPlugin(
         private const val NATIVE_METHOD_PLAY_ARG_IMAGE_URL = "imageUrl"
         private const val NATIVE_METHOD_RESUME = "resume"
         private const val NATIVE_METHOD_PAUSE = "pause"
+        private const val NATIVE_METHOD_PREVIOUS = "previous"
+        private const val NATIVE_METHOD_NEXT = "next"
         private const val NATIVE_METHOD_STOP = "stop"
         private const val NATIVE_METHOD_SEEK_TO = "seekTo"
         private const val NATIVE_METHOD_SEEK_TO_ARG_TIME = "timeInMillis"
@@ -40,6 +42,8 @@ class NativeAudioPlugin(
         private const val FLUTTER_METHOD_ON_PROGRESS_CHANGED = "onProgressChanged"
         private const val FLUTTER_METHOD_ON_RESUMED = "onResumed"
         private const val FLUTTER_METHOD_ON_PAUSED = "onPaused"
+        private const val FLUTTER_METHOD_ON_PREVIOUS = "onPrevious"
+        private const val FLUTTER_METHOD_ON_NEXT = "onNext"
         private const val FLUTTER_METHOD_ON_STOPPED = "onStopped"
         private const val FLUTTER_METHOD_ON_COMPLETED = "onCompleted"
 
@@ -90,6 +94,8 @@ class NativeAudioPlugin(
                 }
                 NATIVE_METHOD_RESUME -> service.resume()
                 NATIVE_METHOD_PAUSE -> service.pause()
+                NATIVE_METHOD_PREVIOUS -> service.previous()
+                NATIVE_METHOD_NEXT -> service.next()
                 NATIVE_METHOD_STOP -> service.stop()
                 NATIVE_METHOD_RELEASE -> releaseAudioService()
                 NATIVE_METHOD_SEEK_TO -> {
@@ -167,6 +173,22 @@ class NativeAudioPlugin(
             onPaused = {
                 try {
                     channel.invokeMethod(FLUTTER_METHOD_ON_PAUSED, null)
+                } catch (e: Exception) {
+                    Log.e(this::class.java.simpleName, e.message, e)
+                }
+            }
+
+            onPrevious = {
+                try {
+                    channel.invokeMethod(FLUTTER_METHOD_ON_PREVIOUS, null)
+                } catch (e: Exception) {
+                    Log.e(this::class.java.simpleName, e.message, e)
+                }
+            }
+
+            onNext = {
+                try {
+                    channel.invokeMethod(FLUTTER_METHOD_ON_NEXT, null)
                 } catch (e: Exception) {
                     Log.e(this::class.java.simpleName, e.message, e)
                 }

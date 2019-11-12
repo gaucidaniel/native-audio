@@ -45,6 +45,8 @@ class AudioService : Service() {
     var onProgressChanged: ((Long) -> Unit)? = null
     var onResumed: (() -> Unit)? = null
     var onPaused: (() -> Unit)? = null
+    var onPrevious: (() -> Unit)? = null
+    var onNext: (() -> Unit)? = null
     var onStopped: (() -> Unit)? = null
     var onCompleted: (() -> Unit)? = null
 
@@ -82,12 +84,12 @@ class AudioService : Service() {
 
                 override fun onSkipToNext() {
                     super.onSkipToNext()
-                    forward30()
+                    next()
                 }
 
                 override fun onSkipToPrevious() {
                     super.onSkipToPrevious()
-                    rewind30()
+                    previous()
                 }
 
                 override fun onFastForward() {
@@ -241,6 +243,14 @@ class AudioService : Service() {
         onPaused?.invoke()
 
         if (!resumeOnAudioFocus) abandonFocus()
+    }
+
+    fun previous() {
+        onPrevious?.invoke()
+    }
+
+    fun next() {
+        onNext?.invoke()
     }
 
     fun stop() {

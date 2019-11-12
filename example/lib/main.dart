@@ -60,6 +60,7 @@ class _MyAppState extends State<MyApp> {
     _audio.onResumed = () {
       setState(() => _isPlaying = true);
       _status = "resumed";
+      print("RESUME!!!");
     };
 
     _audio.onPaused = () {
@@ -67,6 +68,23 @@ class _MyAppState extends State<MyApp> {
         _isPlaying = false;
         _status = "paused";
       });
+      print("PAUSE!!!");
+    };
+
+    _audio.onPrevious = () {
+      setState(() {
+        _status = "previous";
+      });
+      _playSampleAudio();
+      print("PREVIOUS!!!");
+    };
+
+    _audio.onNext = () {
+      setState(() {
+        _status = "next";
+      });
+      _playSampleAudio2();
+      print("NEXT!!!");
     };
 
     _audio.onStopped = () {
@@ -92,5 +110,14 @@ class _MyAppState extends State<MyApp> {
         album: "Science Friday",
         artist: "WNYC Studio",
         imageUrl: "https://www.sciencefriday.com/wp-content/uploads/2019/09/clothes-close-min.jpg");
+  }
+
+  void _playSampleAudio2() {
+    _audio.play("https://jatt.download/dren/music/data/Single_Track/201911/End/320/End_1.mp3/End.mp3",
+        title: "End",
+        album: "End",
+        artist: "Raj Ranjodh",
+        imageUrl: "https://riskyjatt.io/music/thumb/486925/End.jpg"
+    );
   }
 }
