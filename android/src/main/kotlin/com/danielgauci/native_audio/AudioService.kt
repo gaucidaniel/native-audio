@@ -311,8 +311,9 @@ class AudioService : Service() {
 
         val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle()
                 .setMediaSession(session.sessionToken)
-                .setCancelButtonIntent(stopIntent)
+                .setShowActionsInCompactView(0, 1, 2)
                 .setShowCancelButton(true)
+                .setCancelButtonIntent(stopIntent)
 
         notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .setStyle(mediaStyle)
@@ -340,25 +341,25 @@ class AudioService : Service() {
         builder.apply {
             mActions.clear()
 
-            // Add play/pause action
-            val playPauseAction = NotificationCompat.Action.Builder(
-                    if (isPlaying) R.drawable.pause else R.drawable.play,
-                    if (isPlaying) "Pause" else "Play",
-                    MediaButtonReceiver.buildMediaButtonPendingIntent(this@AudioService, PlaybackStateCompat.ACTION_PLAY_PAUSE)
-            ).build()
-            addAction(playPauseAction)
-
             // Add rewind action
             val rewindAction = NotificationCompat.Action.Builder(
-                    R.drawable.rewind_30,
+                    android.R.drawable.ic_media_previous,
                     "Rewind",
                     MediaButtonReceiver.buildMediaButtonPendingIntent(this@AudioService, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
             ).build()
             addAction(rewindAction)
 
+            // Add play/pause action
+            val playPauseAction = NotificationCompat.Action.Builder(
+                    if (isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play,
+                    if (isPlaying) "Pause" else "Play",
+                    MediaButtonReceiver.buildMediaButtonPendingIntent(this@AudioService, PlaybackStateCompat.ACTION_PLAY_PAUSE)
+            ).build()
+            addAction(playPauseAction)
+
             // Add fast forward action
             val forwardAction = NotificationCompat.Action.Builder(
-                    R.drawable.fast_forward_30,
+                    android.R.drawable.ic_media_next,
                     "Fast Forward",
                     MediaButtonReceiver.buildMediaButtonPendingIntent(this@AudioService, PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
             ).build()
