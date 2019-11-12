@@ -42,6 +42,14 @@ class _MyAppState extends State<MyApp> {
             if (_isLoaded) MaterialButton(child: Text("Stop"), onPressed: () => _audio.stop()),
             if (!_isPlaying) MaterialButton(child: Text("Resume"), onPressed: () => _audio.resume()),
             if (_isPlaying) MaterialButton(child: Text("Pause"), onPressed: () => _audio.pause()),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                MaterialButton(child: Text("_playSampleAudio"), onPressed: () => _playSampleAudio()),
+                MaterialButton(child: Text("_playSampleAudio2"), onPressed: () => _playSampleAudio2()),
+              ],
+            )
+            
           ],
         ),
       ),
@@ -79,7 +87,6 @@ class _MyAppState extends State<MyApp> {
       setState(() {
         _status = "next";
       });
-      _playSampleAudio2();
     };
 
     _audio.onStopped = () {
@@ -100,11 +107,11 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _playSampleAudio() {
-    _audio.play("https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3",
-        title: "How The Fashion Industry Is Responding To Climate Change",
-        album: "Science Friday",
-        artist: "WNYC Studio",
-        imageUrl: "https://www.sciencefriday.com/wp-content/uploads/2019/09/clothes-close-min.jpg");
+    _audio.play("https://jatt.download/dren/music/data/Single_Track/201911/Viah/320/Viah_1.mp3/Viah.mp3",
+        title: "Viah",
+        album: "Viah",
+        artist: "Surjit Khan",
+        imageUrl: "https://riskyjatt.io/music/thumb/486972/Viah.jpg");
   }
 
   void _playSampleAudio2() {
