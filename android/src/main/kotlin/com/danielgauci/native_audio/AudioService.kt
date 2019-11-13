@@ -311,6 +311,7 @@ class AudioService : Service() {
 
         val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle()
                 .setMediaSession(session.sessionToken)
+                .setShowActionsInCompactView(0, 1, 2)
                 .setCancelButtonIntent(stopIntent)
                 .setShowCancelButton(true)
 
