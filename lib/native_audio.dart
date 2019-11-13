@@ -11,6 +11,8 @@ class NativeAudio {
   static const _nativeMethodPlayArgImageUrl = "imageUrl";
   static const _nativeMethodResume = "resume";
   static const _nativeMethodPause = "pause";
+  static const _nativeMethodPrevious = "previous";
+  static const _nativeMethodNext = "next";
   static const _nativeMethodStop = "stop";
   static const _nativeMethodSeekTo = "seekTo";
   static const _nativeMethodSeekToArgTimeInMillis = "timeInMillis";
@@ -18,6 +20,8 @@ class NativeAudio {
   static const _flutterMethodOnLoaded = "onLoaded";
   static const _flutterMethodOnResumed = "onResumed";
   static const _flutterMethodOnPaused = "onPaused";
+  static const _flutterMethodOnPrevious = "onPrevious";
+  static const _flutterMethodOnNext = "onNext";
   static const _flutterMethodOnStopped = "onStopped";
   static const _flutterMethodOnProgressChanged = "onProgressChanged";
   static const _flutterMethodOnCompleted = "onCompleted";
@@ -25,6 +29,8 @@ class NativeAudio {
   Function(Duration) onLoaded;
   Function() onResumed;
   Function() onPaused;
+  Function() onPrevious;
+  Function() onNext;
   Function() onStopped;
   Function onCompleted;
   Function(Duration) onProgressChanged;
@@ -45,6 +51,14 @@ class NativeAudio {
 
         case _flutterMethodOnPaused:
           if (onPaused != null) onPaused();
+          break;
+
+        case _flutterMethodOnPrevious:
+          if (onPrevious != null) onPrevious();
+          break;
+
+        case _flutterMethodOnNext:
+          if (onNext != null) onNext();
           break;
 
         case _flutterMethodOnStopped:
@@ -86,6 +100,14 @@ class NativeAudio {
 
   void pause() {
     _invokeNativeMethod(_nativeMethodPause);
+  }
+
+  void previous() {
+    _invokeNativeMethod(_nativeMethodPrevious);
+  }
+
+  void next() {
+    _invokeNativeMethod(_nativeMethodNext);
   }
 
   void stop() {
