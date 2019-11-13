@@ -122,11 +122,12 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         playerItem.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options: [.old, .new], context: &playerItemContext)
 
         // Setup player
-        player  = AVPlayer.init(playerItem: playerItem)
+        player = AVPlayer.init(playerItem: playerItem)
         if #available(iOS 10, *){
-            //Skips Inital Buffering
+            // Skips initial buffering
             player.automaticallyWaitsToMinimizeStalling = false
         }
+        
         player.play()
 
         // Observe finished playing
