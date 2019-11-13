@@ -123,6 +123,10 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
 
         // Setup player
         player  = AVPlayer.init(playerItem: playerItem)
+        if #available(iOS 10, *){
+            //Skips Inital Buffering
+            player.automaticallyWaitsToMinimizeStalling = false
+        }
         player.play()
 
         // Observe finished playing
