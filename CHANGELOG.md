@@ -1,8 +1,12 @@
+## 0.0.11
+
+* Fix changelog formatting
+
 ## 0.0.10
 
-* [Android] Allow Media Controls show in compact notification, fix by (YaarPatandarAA)https://github.com/YaarPatandarAA]
-* [iOS] Improve loading times on iOS 10 and newer, fix by (YaarPatandarAA)https://github.com/YaarPatandarAA]
-* [iOS] Show artwork in Command Center, fix by (YaarPatandarAA)https://github.com/YaarPatandarAA]
+* [Android] Allow Media Controls show in compact notification, fix by (YaarPatandarAA)[https://github.com/YaarPatandarAA]
+* [iOS] Improve loading times on iOS 10 and newer, fix by (YaarPatandarAA)[https://github.com/YaarPatandarAA]
+* [iOS] Show artwork in Command Center, fix by (YaarPatandarAA)[https://github.com/YaarPatandarAA]
 
 ## 0.0.9
 
