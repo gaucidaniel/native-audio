@@ -122,7 +122,12 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         playerItem.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options: [.old, .new], context: &playerItemContext)
 
         // Setup player
-        player  = AVPlayer.init(playerItem: playerItem)
+        player = AVPlayer.init(playerItem: playerItem)
+        if #available(iOS 10, *){
+            // Skips initial buffering
+            player.automaticallyWaitsToMinimizeStalling = false
+        }
+        
         player.play()
 
         // Observe finished playing
@@ -230,6 +235,18 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             MPMediaItemPropertyAlbumTitle: album,
             MPMediaItemPropertyArtist: artist,
         ]
+
+        if let data = try? Data(contentsOf: URL(string: imageUrl)!) {
+            let artwork: UIImage? = UIImage(data: data)!
+            
+            if #available(iOS 10.0, *) {
+                if let artwork = artwork {
+                    MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPMediaItemPropertyArtwork] = MPMediaItemArtwork.init(boundsSize: artwork.size, requestHandler: { (size) -> UIImage in
+                        return artwork
+                    })
+                }
+            }
+        }
     }
 
     private func progressChanged(timeInMillis: Int) {
