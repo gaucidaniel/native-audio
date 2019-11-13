@@ -81,12 +81,14 @@ class _MyAppState extends State<MyApp> {
       setState(() {
         _status = "previous";
       });
+      _playSampleAudio();
     };
 
     _audio.onNext = () {
       setState(() {
         _status = "next";
       });
+      _playSampleAudio2();
     };
 
     _audio.onStopped = () {

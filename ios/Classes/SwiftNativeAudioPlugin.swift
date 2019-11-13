@@ -13,6 +13,8 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     private let flutterMethodOnProgressChangedArgCurrentTime = "currentTime"
     private let flutterMethodOnResumed = "onResumed"
     private let flutterMethodOnPaused = "onPaused"
+    private let flutterMethodOnPrevious = "onPrevious"
+    private let flutterMethodOnNext = "onNext"
     private let flutterMethodOnStopped = "onStopped"
     private let flutterMethodOnCompleted = "onCompleted"
 
@@ -58,6 +60,12 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         case "pause":
             self.pause()
 
+        case "previous":
+            self.previous()
+        
+        case "next":
+            self.next()
+        
         case "stop":
             self.stop()
 
@@ -156,6 +164,14 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         player.pause()
         flutterChannel.invokeMethod(flutterMethodOnPaused, arguments: "")
     }
+    
+    private func previous() {
+        flutterChannel.invokeMethod(flutterMethodOnPrevious, arguments: "")
+    }
+    
+    private func next() {
+        flutterChannel.invokeMethod(flutterMethodOnNext, arguments: "")
+    }
 
     private func stop() {
         player.pause()
@@ -216,11 +232,13 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
 
         // Disable next/previous track
         commandCenter.nextTrackCommand.addTarget { [unowned self] event in
-            return self.skipForward() ? MPRemoteCommandHandlerStatus.success : MPRemoteCommandHandlerStatus.commandFailed
+            self.next()
+            return.success
         }
 
         commandCenter.previousTrackCommand.addTarget { [unowned self] event in
-            return self.skipBackward() ? MPRemoteCommandHandlerStatus.success : MPRemoteCommandHandlerStatus.commandFailed
+            self.previous()
+            return.success
         }
     }
 
