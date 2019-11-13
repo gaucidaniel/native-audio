@@ -231,12 +231,9 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             MPMediaItemPropertyArtist: artist,
         ]
 
-
-        let imgURL = URL(string: imageUrl)
-        if let data = try? Data(contentsOf: imgURL!)
-        {
+        if let data = try? Data(contentsOf: URL(string: imageUrl)!) {
             let artwork: UIImage? = UIImage(data: data)!
-
+            
             if #available(iOS 10.0, *) {
                 if let artwork = artwork {
                     MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPMediaItemPropertyArtwork] = MPMediaItemArtwork.init(boundsSize: artwork.size, requestHandler: { (size) -> UIImage in
