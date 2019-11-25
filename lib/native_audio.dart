@@ -29,45 +29,10 @@ class NativeAudio {
   Function onCompleted;
   Function(Duration) onProgressChanged;
 
-  NativeAudio() {
-    // Listen to method calls from native
-    _channel.setMethodCallHandler((methodCall) {
-      switch (methodCall.method) {
-        case _flutterMethodOnLoaded:
-          int durationInMillis = methodCall.arguments;
-          if (onLoaded != null)
-            onLoaded(Duration(milliseconds: durationInMillis));
-          break;
+  NativeAudio();
 
-        case _flutterMethodOnResumed:
-          if (onResumed != null) onResumed();
-          break;
-
-        case _flutterMethodOnPaused:
-          if (onPaused != null) onPaused();
-          break;
-
-        case _flutterMethodOnStopped:
-          if (onStopped != null) onStopped();
-          break;
-
-        case _flutterMethodOnCompleted:
-          if (onCompleted != null) onCompleted();
-          break;
-
-        case _flutterMethodOnProgressChanged:
-          int currentTimeInMillis = methodCall.arguments;
-          if (onProgressChanged != null)
-            onProgressChanged(Duration(milliseconds: currentTimeInMillis));
-          break;
-      }
-
-      return;
-    });
-  }
-
-  void play(String url,
-      {String title, String artist, String album, String imageUrl}) {
+  void play(String url, {String title, String artist, String album, String imageUrl}) {
+    _registerMethodCallHandler();
     _invokeNativeMethod(
       _nativeMethodPlay,
       arguments: <String, dynamic>{
@@ -95,9 +60,7 @@ class NativeAudio {
   void seekTo(Duration time) {
     _invokeNativeMethod(
       _nativeMethodSeekTo,
-      arguments: <String, dynamic>{
-        _nativeMethodSeekToArgTimeInMillis: time.inMilliseconds
-      },
+      arguments: <String, dynamic>{_nativeMethodSeekToArgTimeInMillis: time.inMilliseconds},
     );
   }
 
@@ -105,8 +68,42 @@ class NativeAudio {
     _invokeNativeMethod(_nativeMethodRelease);
   }
 
-  Future _invokeNativeMethod(String method,
-      {Map<String, dynamic> arguments}) async {
+  void _registerMethodCallHandler() {
+    // Listen to method calls from native
+    _channel.setMethodCallHandler((methodCall) {
+      switch (methodCall.method) {
+        case _flutterMethodOnLoaded:
+          int durationInMillis = methodCall.arguments;
+          if (onLoaded != null) onLoaded(Duration(milliseconds: durationInMillis));
+          break;
+
+        case _flutterMethodOnResumed:
+          if (onResumed != null) onResumed();
+          break;
+
+        case _flutterMethodOnPaused:
+          if (onPaused != null) onPaused();
+          break;
+
+        case _flutterMethodOnStopped:
+          if (onStopped != null) onStopped();
+          break;
+
+        case _flutterMethodOnCompleted:
+          if (onCompleted != null) onCompleted();
+          break;
+
+        case _flutterMethodOnProgressChanged:
+          int currentTimeInMillis = methodCall.arguments;
+          if (onProgressChanged != null) onProgressChanged(Duration(milliseconds: currentTimeInMillis));
+          break;
+      }
+
+      return;
+    });
+  }
+
+  Future _invokeNativeMethod(String method, {Map<String, dynamic> arguments}) async {
     try {
       await _channel.invokeMethod(method, arguments);
     } on PlatformException catch (e) {
