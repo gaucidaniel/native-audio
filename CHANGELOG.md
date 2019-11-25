@@ -1,3 +1,8 @@
+## 0.0.12
+
+* [Android] Support Android 10 media notification seek bar, fix by (YaarPatandarAA)[https://github.com/YaarPatandarAA]
+* [Android] Support Samsung metadata, fix by (YaarPatandarAA)[https://github.com/YaarPatandarAA]
+
 ## 0.0.11
 
 * Fix changelog formatting
