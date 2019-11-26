@@ -59,6 +59,11 @@ class AudioService : Service() {
     private var isNotificationShown = false
     private var notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
 
+    private var title = ""
+    private var artist = ""
+    private var album = ""
+    private var imageUrl = ""
+
     private val binder by lazy { AudioServiceBinder() }
     private val session by lazy {
         MediaSessionCompat(this, MEDIA_SESSION_TAG).apply {
@@ -116,6 +121,12 @@ class AudioService : Service() {
                     durationInMillis = it
                     onLoaded?.invoke(it)
 
+                    showNotification(
+                            title = title,
+                            artist = artist,
+                            album = album,
+                            imageUrl = imageUrl
+                    )
                 },
                 onProgressChanged = {
                     currentPositionInMillis = it
@@ -212,12 +223,10 @@ class AudioService : Service() {
         currentPlaybackState = PlaybackStateCompat.STATE_PLAYING
         updatePlaybackState()
 
-        showNotification(
-                title = title ?: "",
-                artist = artist ?: "",
-                album = album ?: "",
-                imageUrl = imageUrl ?: ""
-        )
+        this.title = title ?: ""
+        this.artist = artist ?: ""
+        this.album = album ?: ""
+        this.imageUrl = imageUrl ?: ""
     }
 
     fun resume() {
