@@ -1,3 +1,12 @@
+## 0.0.13
+
+* Register method call handler on play instead of on initialization to ensure that the channel has not been taken over since initialization. This also opens up the possibility of having multiple instances of NativeAudio.
+
+## 0.0.12
+
+* [Android] Support Android 10 media notification seek bar, fix by (YaarPatandarAA)[https://github.com/YaarPatandarAA]
+* [Android] Support Samsung metadata, fix by (YaarPatandarAA)[https://github.com/YaarPatandarAA]
+
 ## 0.0.11
 
 * Fix changelog formatting

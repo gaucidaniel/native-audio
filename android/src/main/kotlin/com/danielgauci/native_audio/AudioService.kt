@@ -15,6 +15,9 @@ import android.os.Build
 import android.os.IBinder
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION
+import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE
+import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST
+import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ALBUM_ART
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.annotation.ColorInt
@@ -113,11 +116,6 @@ class AudioService : Service() {
                     durationInMillis = it
                     onLoaded?.invoke(it)
 
-                    val metadata = MediaMetadataCompat.Builder()
-                            .putLong(METADATA_KEY_DURATION, durationInMillis)
-                            .build()
-
-                    session.setMetadata(metadata)
                 },
                 onProgressChanged = {
                     currentPositionInMillis = it
@@ -135,7 +133,8 @@ class AudioService : Service() {
                         PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
                         PlaybackStateCompat.ACTION_FAST_FORWARD or
                         PlaybackStateCompat.ACTION_REWIND or
-                        PlaybackStateCompat.ACTION_STOP
+                        PlaybackStateCompat.ACTION_STOP or
+                        PlaybackStateCompat.ACTION_SEEK_TO
         )
     }
 
@@ -304,6 +303,15 @@ class AudioService : Service() {
             @ColorInt notificationColor: Int? = null,
             image: Bitmap? = null
     ) {
+        val metadata = MediaMetadataCompat.Builder()
+                .putLong(METADATA_KEY_DURATION, durationInMillis)
+                .putString(METADATA_KEY_TITLE, title)
+                .putString(METADATA_KEY_ARTIST, artist)
+                .putBitmap(METADATA_KEY_ALBUM_ART, image)
+                .build()
+
+        session.setMetadata(metadata)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) createNotificationChannel()
         val intent = packageManager.getLaunchIntentForPackage(packageName)
         val contentIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
