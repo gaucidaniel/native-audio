@@ -99,8 +99,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                 flutterChannel.invokeMethod(flutterMethodOnLoaded, arguments: Int(totalDurationInMillis))
 
                 // Update control center
-                var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo
-                nowPlayingInfo?[MPMediaItemPropertyPlaybackDuration] = playerItem.duration
+                MPNowPlayingInfoCenter.default().nowPlayingInfo![MPMediaItemPropertyPlaybackDuration] = CMTimeGetSeconds(playerItem.duration)
 
             case .failed:
                 log(message: "Failed AVPlayerItem state.")
@@ -154,11 +153,19 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
 
     private func resume() {
         player.play()
+        if player.currentItem != nil {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(player.currentTime())
+            MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyPlaybackRate] = 1
+        }
         flutterChannel.invokeMethod(flutterMethodOnResumed, arguments: "")
     }
 
     private func pause() {
         player.pause()
+        if player.currentItem != nil {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(player.currentTime())
+            MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyPlaybackRate] = 0
+        }
         flutterChannel.invokeMethod(flutterMethodOnPaused, arguments: "")
     }
 
@@ -226,6 +233,19 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
 
         commandCenter.previousTrackCommand.addTarget { [unowned self] event in
             return self.skipBackward() ? MPRemoteCommandHandlerStatus.success : MPRemoteCommandHandlerStatus.commandFailed
+        }
+        
+        if #available(iOS 9.1, *) {
+            commandCenter.changePlaybackPositionCommand.isEnabled = true
+            commandCenter.changePlaybackPositionCommand.addTarget { event in
+                if let event = event as? MPChangePlaybackPositionCommandEvent {
+                    let time = CMTime(seconds: event.positionTime, preferredTimescale: 1000000).seconds
+                    self.seekTo(timeInMillis: Int(1000 * time))
+                }
+                return .success
+            }
+        } else {
+            // Fallback on earlier versions
         }
     }
 
