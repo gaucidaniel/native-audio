@@ -58,11 +58,7 @@ class AudioService : Service() {
     private var resumeOnAudioFocus = false
     private var isNotificationShown = false
     private var notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-
-    private var title = ""
-    private var artist = ""
-    private var album = ""
-    private var imageUrl = ""
+    private var metadata = MediaMetadataCompat.Builder()
 
     private val binder by lazy { AudioServiceBinder() }
     private val session by lazy {
@@ -121,12 +117,8 @@ class AudioService : Service() {
                     durationInMillis = it
                     onLoaded?.invoke(it)
 
-                    showNotification(
-                            title = title,
-                            artist = artist,
-                            album = album,
-                            imageUrl = imageUrl
-                    )
+                    metadata.putLong(METADATA_KEY_DURATION, durationInMillis)
+                    session.setMetadata(metadata.build())
                 },
                 onProgressChanged = {
                     currentPositionInMillis = it
@@ -223,10 +215,12 @@ class AudioService : Service() {
         currentPlaybackState = PlaybackStateCompat.STATE_PLAYING
         updatePlaybackState()
 
-        this.title = title ?: ""
-        this.artist = artist ?: ""
-        this.album = album ?: ""
-        this.imageUrl = imageUrl ?: ""
+        showNotification(
+                title = title ?: "",
+                artist = artist ?: "",
+                album = album ?: "",
+                imageUrl = imageUrl ?: ""
+        )
     }
 
     fun resume() {
@@ -312,14 +306,11 @@ class AudioService : Service() {
             @ColorInt notificationColor: Int? = null,
             image: Bitmap? = null
     ) {
-        val metadata = MediaMetadataCompat.Builder()
-                .putLong(METADATA_KEY_DURATION, durationInMillis)
-                .putString(METADATA_KEY_TITLE, title)
+        metadata.putString(METADATA_KEY_TITLE, title)
                 .putString(METADATA_KEY_ARTIST, artist)
                 .putBitmap(METADATA_KEY_ALBUM_ART, image)
-                .build()
 
-        session.setMetadata(metadata)
+        session.setMetadata(metadata.build())
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) createNotificationChannel()
         val intent = packageManager.getLaunchIntentForPackage(packageName)
