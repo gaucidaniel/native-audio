@@ -1,3 +1,9 @@
+## 0.0.14
+
+* Fix iOS notification seek bar
+* Android Notification fixes and improvements
+* Improve ReadMe with prerequisites 
+
 ## 0.0.13
 
 * Register method call handler on play instead of on initialization to ensure that the channel has not been taken over since initialization. This also opens up the possibility of having multiple instances of NativeAudio.
