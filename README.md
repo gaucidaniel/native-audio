@@ -8,11 +8,20 @@ This plugin works on both Android and iOS, however the following setup is requir
 
 ### Android
 
+#### Prerequisite
+- Flutter Project MinSDK 21
+- [Flutter Project AndroidX](https://flutter.dev/docs/development/androidx-migration#how-do-i-migrate-my-existing-app-plugin-or-host-editable-module-project-to-androidx)
+
 #### 1. Application
 
 Create or modify the `Application` class as follows:
 
 ```kotlin
+import io.flutter.app.FlutterApplication
+import io.flutter.plugin.common.PluginRegistry
+import io.flutter.plugins.GeneratedPluginRegistrant
+import com.danielgauci.native_audio.NativeAudioPlugin
+
 class Application : FlutterApplication(), PluginRegistry.PluginRegistrantCallback {
 
     override fun onCreate() {
@@ -60,6 +69,7 @@ geofencing:
 As well as the following lines to setup the permissions required:
 
 ```xml
+<uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.BLUETOOTH" />
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -67,4 +77,8 @@ As well as the following lines to setup the permissions required:
 
 ### iOS
 
-No setup is required for iOS 🍏
+#### Prerequisite
+- Flutter Project minimum `iOS 10`
+- Flutter Project minimum build `Swift 4.2`
+
+No additional setup is required for iOS 🍏
