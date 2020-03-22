@@ -1,3 +1,7 @@
+## 0.0.16
+
+* Unregister listeners when stopping or playing a new audio URL on iOS
+
 ## 0.0.15
 
 * Pause playback during seeking on iOS
