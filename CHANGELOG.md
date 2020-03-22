@@ -1,3 +1,7 @@
+## 0.0.17
+
+* Fixed crashes when calling stop() while the audio is already stopped
+
 ## 0.0.16
 
 * Unregister listeners when stopping or playing a new audio URL on iOS
