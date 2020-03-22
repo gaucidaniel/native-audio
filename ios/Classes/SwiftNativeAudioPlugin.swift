@@ -19,8 +19,8 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     private var flutterController : FlutterViewController!
     private var flutterChannel: FlutterMethodChannel!
     
-    private var player: AVPlayer!
-    private var playerItem: AVPlayerItem!
+    private var avPlayer: AVPlayer!
+    private var avPlayerItem: AVPlayerItem!
     private var timeObserverToken: Any?
     private var playerItemContext = 0
     private var currentProgressInMillis = -1
@@ -93,14 +93,14 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             switch status {
             case .readyToPlay:
                 // Update listener
-                let duration = playerItem.duration
+                let duration = avPlayerItem.duration
                 let durationInSeconds = CMTimeGetSeconds(duration)
                 totalDurationInMillis = Int(1000 * durationInSeconds)
                 
                 flutterChannel.invokeMethod(flutterMethodOnLoaded, arguments: Int(totalDurationInMillis))
                 
                 // Update control center
-                MPNowPlayingInfoCenter.default().nowPlayingInfo![MPMediaItemPropertyPlaybackDuration] = CMTimeGetSeconds(playerItem.duration)
+                MPNowPlayingInfoCenter.default().nowPlayingInfo![MPMediaItemPropertyPlaybackDuration] = CMTimeGetSeconds(avPlayerItem.duration)
                 
             case .failed:
                 log(message: "Failed AVPlayerItem state.")
@@ -112,7 +112,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     
     private func play(url: String, title: String, artist: String, album: String, imageUrl: String) {
         // Pause any ongoing playback and clean up resources. stop() is not called since we do not want to notify the Flutter channel
-        if (player != nil) {player.pause()}
+        if (avPlayer != nil) {avPlayer.pause()}
         cleanUp()
         
         // Update control center
@@ -120,22 +120,22 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         
         // Setup player item
         guard let audioUrl = URL.init(string: url) else { return }
-        playerItem = AVPlayerItem.init(url: audioUrl)
+        avPlayerItem = AVPlayerItem.init(url: audioUrl)
         
         // Observe player item status
-        playerItem.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options: [.old, .new], context: &playerItemContext)
+        avPlayerItem.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options: [.old, .new], context: &playerItemContext)
         
         // Setup player
-        player = AVPlayer.init(playerItem: playerItem)
+        avPlayer = AVPlayer.init(playerItem: avPlayerItem)
         if #available(iOS 10, *){
             // Skips initial buffering
-            player.automaticallyWaitsToMinimizeStalling = false
+            avPlayer.automaticallyWaitsToMinimizeStalling = false
         }
         
-        player.play()
+        avPlayer.play()
         
         // Observe finished playing
-        NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(notification:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
+        NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(notification:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: avPlayerItem)
         
         // Set audio session as active to play in background
         do {
@@ -149,7 +149,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         let interval = CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
         let mainQueue = DispatchQueue.main
         
-        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: mainQueue) { [weak self] time in
+        timeObserverToken = avPlayer.addPeriodicTimeObserver(forInterval: interval, queue: mainQueue) { [weak self] time in
             let currentSeconds = CMTimeGetSeconds(time)
             let currentMillis = 1000 * currentSeconds
             
@@ -158,32 +158,40 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     }
     
     private func resume() {
-        player.play()
-        if player.currentItem != nil {
-            MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(player.currentTime())
-            MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyPlaybackRate] = 1
+        if let player = avPlayer {
+            player.play()
+            if player.currentItem != nil {
+                MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(player.currentTime())
+                MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyPlaybackRate] = 1
+            }
         }
+        
         flutterChannel.invokeMethod(flutterMethodOnResumed, arguments: "")
     }
     
     private func pause() {
-        player.pause()
-        if player.currentItem != nil {
-            MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(player.currentTime())
-            MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyPlaybackRate] = 0
+        if let player = avPlayer {
+            player.pause()
+            if player.currentItem != nil {
+                MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(avPlayer.currentTime())
+                MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyPlaybackRate] = 0
+            }
         }
+        
         flutterChannel.invokeMethod(flutterMethodOnPaused, arguments: "")
     }
     
     private func stop() {
-        player.pause()
-        player.seek(to: CMTimeMake(value: 0, timescale: 1))
-        
-        // Set audio session as inactive
         do {
+            // Set audio session as inactive
             try AVAudioSession.sharedInstance().setActive(false)
         } catch {
             print("Failed to set AVAudioSession to inactive")
+        }
+        
+        if let player = avPlayer {
+            player.pause()
+            player.seek(to: CMTimeMake(value: 0, timescale: 1))
         }
         
         cleanUp()
@@ -214,24 +222,27 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     }
     
     private func seekTo(timeInMillis: Int) {
-        // Playback is not automatically paused when seeking, handle this manually
-        let isPlaying = player.rate > 0.0
-        if (isPlaying) {
-            pause()
-        }
-        
-        let time = CMTimeMakeWithSeconds(Float64(timeInMillis / 1000), preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        player.seek(to: time, completionHandler: { success in
-            // Resume playback if player was previously playing
-            if (isPlaying){
-                self.resume()
-            }
+        if let player = avPlayer {
+            // Playback is not automatically paused when seeking, handle this manually
+            let isPlaying = player.rate > 0.0
+            if (isPlaying) {pause()}
             
-            // Update info center
-            if self.player.currentItem != nil {
-                MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyElapsedPlaybackTime] = Float64(timeInMillis / 1000)
-            }
-        })
+            let time = CMTimeMakeWithSeconds(Float64(timeInMillis / 1000), preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+            player.seek(to: time, completionHandler: { success in
+                // Update Flutter progress
+                self.flutterChannel.invokeMethod(self.flutterMethodOnProgressChanged, arguments: timeInMillis)
+
+                // Resume playback if player was previously playing
+                if (isPlaying){
+                    self.resume()
+                }
+                
+                // Update info center
+                if player.currentItem != nil {
+                    MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyElapsedPlaybackTime] = Float64(timeInMillis / 1000)
+                }
+            })
+        }
     }
     
     private func setupRemoteTransportControls() {
@@ -304,19 +315,19 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     
     private func cleanUp() {
         // Cleanup player
-        if (player != nil) {
+        if let player = avPlayer {
             if let timeObserverToken = timeObserverToken {
                 player.removeTimeObserver(timeObserverToken)
                 self.timeObserverToken = nil
             }
             
-            player = nil
+            avPlayer = nil
         }
-        
+       
         // Cleanup player item
-        if (playerItem != nil) {
-            playerItem.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
-            playerItem = nil
+        if let playerItem = avPlayerItem {
+           playerItem.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
+            avPlayerItem = nil
         }
         
         // Remove notification center observers
