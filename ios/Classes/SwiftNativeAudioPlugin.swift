@@ -15,33 +15,34 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     private let flutterMethodOnPaused = "onPaused"
     private let flutterMethodOnStopped = "onStopped"
     private let flutterMethodOnCompleted = "onCompleted"
-
+    
     private var flutterController : FlutterViewController!
     private var flutterChannel: FlutterMethodChannel!
-
+    
     private var player: AVPlayer!
     private var playerItem: AVPlayerItem!
+    private var timeObserverToken: Any?
     private var playerItemContext = 0
     private var currentProgressInMillis = -1
     private var totalDurationInMillis = -1
     private var skipForwardTimeInMillis = 30_000
     private var skipBackwardTimeInMillis = 15_000
-
-  public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
-    let instance = SwiftNativeAudioPlugin(withChannel: channel)
-    registrar.addMethodCallDelegate(instance, channel: channel)
-  }
-
+    
+    public static func register(with registrar: FlutterPluginRegistrar) {
+        let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
+        let instance = SwiftNativeAudioPlugin(withChannel: channel)
+        registrar.addMethodCallDelegate(instance, channel: channel)
+    }
+    
     public init(withChannel channel: FlutterMethodChannel) {
         super.init()
         flutterChannel = channel
         setupRemoteTransportControls()
     }
     
-  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    result("iOS " + UIDevice.current.systemVersion)
-    switch(call.method) {
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        result("iOS " + UIDevice.current.systemVersion)
+        switch(call.method) {
         case "play":
             let arguments = call.arguments as! NSDictionary
             let url =  arguments["url"] as! String
@@ -49,28 +50,28 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             let artist =  arguments["artist"] as! String
             let album =  arguments["album"] as! String
             let imageUrl =  arguments["imageUrl"] as! String
-
+            
             self.play(url: url, title: title, artist: artist, album: album, imageUrl: imageUrl)
-
+            
         case "resume":
             self.resume()
-
+            
         case "pause":
             self.pause()
-
+            
         case "stop":
             self.stop()
-
+            
         case "seekTo":
             let arguments = call.arguments as! NSDictionary
             let timeInMillis =  arguments["timeInMillis"] as! Int
             self.seekTo(timeInMillis: timeInMillis)
-
+            
         default:
             self.log(message: "Unknown method called on Native Audio Player channel.")
         }
     }
-
+    
     override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         // Only handle observations for the playerItemContext
         guard context == &playerItemContext else {
@@ -80,7 +81,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                                context: context)
             return
         }
-
+        
         if keyPath == #keyPath(AVPlayerItem.status) {
             let status: AVPlayerItem.Status
             if let statusNumber = change?[.newKey] as? NSNumber {
@@ -88,19 +89,19 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             } else {
                 status = .unknown
             }
-
+            
             switch status {
             case .readyToPlay:
                 // Update listener
                 let duration = playerItem.duration
                 let durationInSeconds = CMTimeGetSeconds(duration)
                 totalDurationInMillis = Int(1000 * durationInSeconds)
-
+                
                 flutterChannel.invokeMethod(flutterMethodOnLoaded, arguments: Int(totalDurationInMillis))
-
+                
                 // Update control center
                 MPNowPlayingInfoCenter.default().nowPlayingInfo![MPMediaItemPropertyPlaybackDuration] = CMTimeGetSeconds(playerItem.duration)
-
+                
             case .failed:
                 log(message: "Failed AVPlayerItem state.")
             case .unknown:
@@ -108,18 +109,22 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             }
         }
     }
-
+    
     private func play(url: String, title: String, artist: String, album: String, imageUrl: String) {
+        // Pause any ongoing playback and clean up resources. stop() is not called since we do not want to notify the Flutter channel
+        if (player != nil) {player.pause()}
+        cleanUp()
+        
         // Update control center
         updateNowPlayingInfoCenter(title: title, artist: artist, album: album, imageUrl: imageUrl)
-
+        
         // Setup player item
         guard let audioUrl = URL.init(string: url) else { return }
         playerItem = AVPlayerItem.init(url: audioUrl)
-
+        
         // Observe player item status
         playerItem.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options: [.old, .new], context: &playerItemContext)
-
+        
         // Setup player
         player = AVPlayer.init(playerItem: playerItem)
         if #available(iOS 10, *){
@@ -128,10 +133,10 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         }
         
         player.play()
-
+        
         // Observe finished playing
         NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(notification:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
-
+        
         // Set audio session as active to play in background
         do {
             try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
@@ -139,18 +144,19 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         } catch {
             print("Failed to set AVAudioSession to active")
         }
-
-        // Observe progress
+        
+        // Add progress listener
         let interval = CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
         let mainQueue = DispatchQueue.main
-        player.addPeriodicTimeObserver(forInterval: interval, queue: mainQueue) { [weak self] time in
+        
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: mainQueue) { [weak self] time in
             let currentSeconds = CMTimeGetSeconds(time)
             let currentMillis = 1000 * currentSeconds
-
+            
             self?.progressChanged(timeInMillis: Int(currentMillis))
         }
     }
-
+    
     private func resume() {
         player.play()
         if player.currentItem != nil {
@@ -159,7 +165,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         }
         flutterChannel.invokeMethod(flutterMethodOnResumed, arguments: "")
     }
-
+    
     private func pause() {
         player.pause()
         if player.currentItem != nil {
@@ -168,21 +174,23 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         }
         flutterChannel.invokeMethod(flutterMethodOnPaused, arguments: "")
     }
-
+    
     private func stop() {
         player.pause()
         player.seek(to: CMTimeMake(value: 0, timescale: 1))
-
-        // Set audio session as active to play in background
+        
+        // Set audio session as inactive
         do {
             try AVAudioSession.sharedInstance().setActive(false)
         } catch {
             print("Failed to set AVAudioSession to inactive")
         }
-
+        
+        cleanUp()
+        
         flutterChannel.invokeMethod(flutterMethodOnStopped, arguments: "")
     }
-
+    
     private func skipForward() -> Bool {
         if (totalDurationInMillis > currentProgressInMillis + skipForwardTimeInMillis) {
             // Episode is loaded and there is enough time to skip forward
@@ -193,7 +201,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             return false
         }
     }
-
+    
     private func skipBackward() -> Bool {
         if (currentProgressInMillis - skipBackwardTimeInMillis > 0) {
             // Episode is loaded and there is enough time to skip backward
@@ -204,7 +212,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             return false
         }
     }
-
+    
     private func seekTo(timeInMillis: Int) {
         // Playback is not automatically paused when seeking, handle this manually
         let isPlaying = player.rate > 0.0
@@ -225,28 +233,28 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             }
         })
     }
-
+    
     private func setupRemoteTransportControls() {
         // Get the shared MPRemoteCommandCenter
         let commandCenter = MPRemoteCommandCenter.shared()
-
+        
         // Add handler for Play Command
         commandCenter.playCommand.addTarget { [unowned self] event in
             self.resume()
             return .success
         }
-
+        
         // Add handler for Pause Command
         commandCenter.pauseCommand.addTarget { [unowned self] event in
             self.pause()
             return.success
         }
-
+        
         // Disable next/previous track
         commandCenter.nextTrackCommand.addTarget { [unowned self] event in
             return self.skipForward() ? MPRemoteCommandHandlerStatus.success : MPRemoteCommandHandlerStatus.commandFailed
         }
-
+        
         commandCenter.previousTrackCommand.addTarget { [unowned self] event in
             return self.skipBackward() ? MPRemoteCommandHandlerStatus.success : MPRemoteCommandHandlerStatus.commandFailed
         }
@@ -264,14 +272,14 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             // Fallback on earlier versions
         }
     }
-
+    
     private func updateNowPlayingInfoCenter(title: String, artist: String, album: String, imageUrl: String) {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = [
             MPMediaItemPropertyTitle: title,
             MPMediaItemPropertyAlbumTitle: album,
             MPMediaItemPropertyArtist: artist,
         ]
-
+        
         if let data = try? Data(contentsOf: URL(string: imageUrl)!) {
             let artwork: UIImage? = UIImage(data: data)!
             
@@ -284,20 +292,40 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             }
         }
     }
-
+    
     private func progressChanged(timeInMillis: Int) {
         currentProgressInMillis = timeInMillis
         flutterChannel.invokeMethod(flutterMethodOnProgressChanged, arguments: timeInMillis)
     }
-
+    
     @objc func playerDidFinishPlaying(notification: Notification) {
         flutterChannel.invokeMethod(flutterMethodOnCompleted, arguments: "")
     }
-
+    
+    private func cleanUp() {
+        // Cleanup player
+        if (player != nil) {
+            if let timeObserverToken = timeObserverToken {
+                player.removeTimeObserver(timeObserverToken)
+                self.timeObserverToken = nil
+            }
+            
+            player = nil
+        }
+        
+        // Cleanup player item
+        if (playerItem != nil) {
+            playerItem.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
+            playerItem = nil
+        }
+        
+        // Remove notification center observers
+        NotificationCenter.default.removeObserver(self)
+    }
+    
     private func log(message: StaticString) {
         if #available(iOS 10.0, *) {
             os_log(message)
         }
     }
-  }
-
+}
