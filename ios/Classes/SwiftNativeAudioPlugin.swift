@@ -206,11 +206,24 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     }
 
     private func seekTo(timeInMillis: Int) {
-        let time = CMTimeMakeWithSeconds(Float64(timeInMillis / 1000), preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        player.seek(to: time)
-        if player.currentItem != nil {
-            MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyElapsedPlaybackTime] = Float64(timeInMillis / 1000)
+        // Playback is not automatically paused when seeking, handle this manually
+        let isPlaying = player.rate > 0.0
+        if (isPlaying) {
+            pause()
         }
+        
+        let time = CMTimeMakeWithSeconds(Float64(timeInMillis / 1000), preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        player.seek(to: time, completionHandler: { success in
+            // Resume playback if player was previously playing
+            if (isPlaying){
+                self.resume()
+            }
+            
+            // Update info center
+            if self.player.currentItem != nil {
+                MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyElapsedPlaybackTime] = Float64(timeInMillis / 1000)
+            }
+        })
     }
 
     private func setupRemoteTransportControls() {
