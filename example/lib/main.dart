@@ -13,6 +13,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   var _audio = NativeAudio();
+  var _progressText = "0:00:00";
   var _isLoaded = false;
   var _isPlaying = false;
   var _status = "stopped";
@@ -34,13 +35,15 @@ class _MyAppState extends State<MyApp> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            Text(_progressText, textAlign: TextAlign.center),
             Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(_status, textAlign: TextAlign.center),
             ),
+            SizedBox(height: 48),
             if (!_isLoaded) MaterialButton(child: Text("Play"), onPressed: () => _playSampleAudio()),
             if (_isLoaded) MaterialButton(child: Text("Stop"), onPressed: () => _audio.stop()),
-            if (!_isPlaying) MaterialButton(child: Text("Resume"), onPressed: () => _audio.resume()),
+            if (!_isPlaying && _isLoaded) MaterialButton(child: Text("Resume"), onPressed: () => _audio.resume()),
             if (_isPlaying) MaterialButton(child: Text("Pause"), onPressed: () => _audio.pause()),
           ],
         ),
@@ -84,6 +87,12 @@ class _MyAppState extends State<MyApp> {
         _status = "completed";
       });
     };
+
+    _audio.onProgressChanged = (progress) {
+      setState(() {
+        this._progressText = _durationToString(progress);
+      });
+    };
   }
 
   void _playSampleAudio() {
@@ -92,5 +101,24 @@ class _MyAppState extends State<MyApp> {
         album: "Science Friday",
         artist: "WNYC Studio",
         imageUrl: "https://www.sciencefriday.com/wp-content/uploads/2019/09/clothes-close-min.jpg");
+  }
+
+  void _playSampleAudio2() {
+    _audio.play("https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3",
+        title: "How The Fashion Industry Is Responding To Climate Change",
+        album: "Science Friday",
+        artist: "WNYC Studio",
+        imageUrl: "https://www.sciencefriday.com/wp-content/uploads/2019/09/clothes-close-min.jpg");
+  }
+
+  String _durationToString(Duration duration) {
+    String twoDigits(int n) {
+      if (n >= 10) return "$n";
+      return "0$n";
+    }
+
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
   }
 }
