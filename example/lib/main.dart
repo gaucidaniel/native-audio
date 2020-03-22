@@ -45,9 +45,9 @@ class _MyAppState extends State<MyApp> {
             if (_isLoaded) MaterialButton(child: Text("Stop"), onPressed: () => _audio.stop()),
             if (!_isPlaying && _isLoaded) MaterialButton(child: Text("Resume"), onPressed: () => _audio.resume()),
             if (_isPlaying) MaterialButton(child: Text("Pause"), onPressed: () => _audio.pause()),
-            if (!_isLoaded)
+            if (_isLoaded)
               MaterialButton(child: Text("Seek to 30m"), onPressed: () => _audio.seekTo(Duration(minutes: 30))),
-            if (!_isLoaded)
+            if (_isLoaded)
               MaterialButton(child: Text("Seek to 70m"), onPressed: () => _audio.seekTo(Duration(minutes: 70))),
           ],
         ),
