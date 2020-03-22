@@ -1,3 +1,7 @@
+## 0.0.15
+
+* Pause playback during seeking on iOS
+
 ## 0.0.14
 
 * Fix iOS notification seek bar
