@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:native_audio/native_audio.dart';
 
 void main() => runApp(MyApp());
@@ -41,7 +39,8 @@ class _MyAppState extends State<MyApp> {
               child: Text(_status, textAlign: TextAlign.center),
             ),
             SizedBox(height: 48),
-            if (!_isLoaded) MaterialButton(child: Text("Play"), onPressed: () => _playSampleAudio()),
+            // if (!_isLoaded) 
+            MaterialButton(child: Text("Play"), onPressed: () => _playSampleAudio()),
             if (_isLoaded) MaterialButton(child: Text("Stop"), onPressed: () => _audio.stop()),
             if (!_isPlaying && _isLoaded) MaterialButton(child: Text("Resume"), onPressed: () => _audio.resume()),
             if (_isPlaying) MaterialButton(child: Text("Pause"), onPressed: () => _audio.pause()),
@@ -57,6 +56,7 @@ class _MyAppState extends State<MyApp> {
 
   void _listenForAudioEvents() {
     _audio.onLoaded = (audioDuration) {
+      print('events: loaded $audioDuration');
       setState(() {
         _isLoaded = true;
         _isPlaying = true;
@@ -65,11 +65,13 @@ class _MyAppState extends State<MyApp> {
     };
 
     _audio.onResumed = () {
+      print('events: resumed');
       setState(() => _isPlaying = true);
       _status = "resumed";
     };
 
     _audio.onPaused = () {
+      print('events: paused');
       setState(() {
         _isPlaying = false;
         _status = "paused";
@@ -77,6 +79,7 @@ class _MyAppState extends State<MyApp> {
     };
 
     _audio.onStopped = () {
+      print('events: stoped');
       setState(() {
         _isLoaded = false;
         _isPlaying = false;
@@ -85,6 +88,7 @@ class _MyAppState extends State<MyApp> {
     };
 
     _audio.onCompleted = () {
+      print('events: completed');
       setState(() {
         _isLoaded = false;
         _isPlaying = false;
@@ -93,6 +97,7 @@ class _MyAppState extends State<MyApp> {
     };
 
     _audio.onProgressChanged = (progress) {
+      print('events: progress $progress');
       setState(() {
         this._progressText = _durationToString(progress);
       });

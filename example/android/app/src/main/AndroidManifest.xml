@@ -47,6 +47,10 @@
             </intent-filter>
         </service>
 
+         <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+
     </application>
 
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that

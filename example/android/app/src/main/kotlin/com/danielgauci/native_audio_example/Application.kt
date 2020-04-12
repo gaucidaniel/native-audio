@@ -13,6 +13,6 @@ class Application : FlutterApplication(), PluginRegistry.PluginRegistrantCallbac
     }
 
     override fun registerWith(registry: PluginRegistry) {
-        GeneratedPluginRegistrant.registerWith(registry)
+        // GeneratedPluginRegistrant.registerWith(registry)
     }
 }
