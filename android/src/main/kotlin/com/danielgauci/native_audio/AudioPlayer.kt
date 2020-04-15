@@ -6,9 +6,13 @@ import android.util.Log
 import java.util.concurrent.TimeUnit
 
 class AudioPlayer(
-        private val onLoaded: ((duration: Long) -> Unit)? = null,
-        private val onProgressChanged: ((currentTime: Long) -> Unit)? = null,
-        private val onCompleted: (() -> Unit)? = null
+    private val onLoaded: ((duration: Long) -> Unit)? = null,
+    private val onProgressChanged: ((currentTime: Long) -> Unit)? = null,
+    private val onCompleted: (() -> Unit)? = null,
+    private val onBufferStart: (() -> Unit)? = null,
+    private val onBufferEnd: (() -> Unit)? = null,
+    private val onBufferingUpdate: ((Int) -> Unit)? = null,
+    private val onError: ((String) -> Unit)? = null
 ) {
 
     private var mediaPlayer: MediaPlayer? = null
@@ -62,10 +66,26 @@ class AudioPlayer(
     private fun loadAudio(url: String) {
         mediaPlayer?.apply {
             setOnErrorListener { mp, what, extra ->
+                when (what) {
+                    MediaPlayer.MEDIA_ERROR_UNKNOWN -> onError?.invoke("MEDIA_ERROR_UNKNOWN")
+                    MediaPlayer.MEDIA_ERROR_SERVER_DIED -> onError?.invoke("MEDIA_ERROR_SERVER_DIED")
+                }
+                when (extra) {
+                    MediaPlayer.MEDIA_ERROR_IO -> onError?.invoke("MEDIA_ERROR_IO")
+                    // / Media server died. In this case, the application must release 
+                    // the MediaPlayer object and instantiate a new one.
+                    MediaPlayer.MEDIA_ERROR_SERVER_DIED -> onError?.invoke("MEDIA_ERROR_SERVER_DIED")
+                    MediaPlayer.MEDIA_ERROR_TIMED_OUT -> onError?.invoke("MEDIA_ERROR_TIMED_OUT")
+                    MediaPlayer.MEDIA_ERROR_UNSUPPORTED -> onError?.invoke("MEDIA_ERROR_UNSUPPORTED")
+                }
                 Log.d(this::class.java.simpleName, "OnError - Error code: $what Extra code: $extra")
 
                 // Return false to trigger on complete
                 false
+            }
+
+            setOnBufferingUpdateListener { mp, what ->
+                onBufferingUpdate?.invoke(what)
             }
 
             reset()
@@ -82,9 +102,18 @@ class AudioPlayer(
 
                 // Notify callback
                 onLoaded?.invoke(duration.toLong())
+                Log.d(this::class.java.simpleName, "OnPreparedListener -  code: ${it.duration} Extra ")
 
                 // Update flags
                 isLoaded = true
+            setOnInfoListener { mp, what, extra ->
+                Log.d(this::class.java.simpleName, "Oninfo -  code: $what Extra code: $extra")
+                when (what) {
+                  MediaPlayer.MEDIA_INFO_BUFFERING_START -> onBufferStart?.invoke()
+                  MediaPlayer.MEDIA_INFO_BUFFERING_END -> onBufferEnd?.invoke()
+                }
+                 false
+               }
             }
 
             setOnCompletionListener {

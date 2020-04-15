@@ -15,6 +15,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     private let flutterMethodOnPaused = "onPaused"
     private let flutterMethodOnStopped = "onStopped"
     private let flutterMethodOnCompleted = "onCompleted"
+    private let flutterMethodOnError = "onError"
     
     private var flutterController : FlutterViewController!
     private var flutterChannel: FlutterMethodChannel!
@@ -104,6 +105,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                 
             case .failed:
                 log(message: "Failed AVPlayerItem state.")
+                flutterChannel.invokeMethod(flutterMethodOnError, arguments: Int(1))
             case .unknown:
                 log(message: "Unknown AVPlayerItem state.")
             }

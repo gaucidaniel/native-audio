@@ -6,6 +6,9 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
+import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding
+import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -14,10 +17,7 @@ import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugin.common.PluginRegistry.Registrar
 import io.flutter.view.FlutterNativeView
 
-class NativeAudioPlugin(
-        private val context: Context,
-        private val channel: MethodChannel
-) : MethodCallHandler {
+class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
 
     companion object {
 
@@ -35,6 +35,7 @@ class NativeAudioPlugin(
         private const val NATIVE_METHOD_SEEK_TO = "seekTo"
         private const val NATIVE_METHOD_SEEK_TO_ARG_TIME = "timeInMillis"
         private const val NATIVE_METHOD_RELEASE = "release"
+        private const val NATIVE_METHOD_SERVICE_STATUS = "serviceStatus"
 
         private const val FLUTTER_METHOD_ON_LOADED = "onLoaded"
         private const val FLUTTER_METHOD_ON_PROGRESS_CHANGED = "onProgressChanged"
@@ -42,6 +43,11 @@ class NativeAudioPlugin(
         private const val FLUTTER_METHOD_ON_PAUSED = "onPaused"
         private const val FLUTTER_METHOD_ON_STOPPED = "onStopped"
         private const val FLUTTER_METHOD_ON_COMPLETED = "onCompleted"
+        private const val FLUTTER_METHOD_ON_ERROR = "onError"
+        private const val FLUTTER_METHOD_ON_SERVICE_STATUS = "serviceStatus"
+        private const val FLUTTER_METHOD_ON_BUFFERING_START = "bufferingStart"
+        private const val FLUTTER_METHOD_ON_BUFFERING_END = "bufferingEnd"
+        private const val FLUTTER_METHOD_ON_BUFFERING_UPDATTE = "bufferingUpdate"
 
         private var pluginRegistrantCallback: PluginRegistry.PluginRegistrantCallback? = null
 
@@ -52,16 +58,26 @@ class NativeAudioPlugin(
 
         @JvmStatic
         fun registerWith(registrar: Registrar) {
-            val channel = MethodChannel(registrar.messenger(), CHANNEL)
-            channel.setMethodCallHandler(NativeAudioPlugin(registrar.context(), channel))
+            val instance = NativeAudioPlugin()
+            instance.atachedToEngine(registrar.context(), registrar.messenger())
         }
     }
-
+    private var context: Context? = null
+    private var channel: MethodChannel? = null
     private var flutterView: FlutterNativeView? = null
     private var audioService: AudioService? = null
     private var serviceConnection: ServiceConnection? = null
 
     override fun onMethodCall(call: MethodCall, result: Result) {
+
+        if (call.method == NATIVE_METHOD_SERVICE_STATUS) {
+        val isRunning = context?.isServiceRunning(AudioService::class.java) == true
+        channel?.invokeMethod(FLUTTER_METHOD_ON_SERVICE_STATUS, isRunning)
+        if (!isRunning) return
+        withService {
+            
+        }
+    }
         withService { service ->
             if (flutterView == null) {
                 // Register all plugins for the application with our new FlutterNativeView's
@@ -81,7 +97,7 @@ class NativeAudioPlugin(
                         val artist = call.argument<String>(NATIVE_METHOD_PLAY_ARG_ARTIST)
                         val album = call.argument<String>(NATIVE_METHOD_PLAY_ARG_ALBUM)
                         val imageUrl = call.argument<String>(NATIVE_METHOD_PLAY_ARG_IMAGE_URL)
-
+                        NativeAudioPlugin
                         // Call service
                         withService {
                             it.play(url, title, artist, album, imageUrl)
@@ -126,8 +142,10 @@ class NativeAudioPlugin(
             }
 
             val serviceIntent = Intent(context, AudioService::class.java)
-            if (!context.isServiceRunning(AudioService::class.java)) context.startService(serviceIntent)
-            context.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+            if (context?.isServiceRunning(AudioService::class.java) != true)
+            context?.startService(serviceIntent)
+
+            context?.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
 
             // Return and wait for service to be connected
             return
@@ -141,57 +159,69 @@ class NativeAudioPlugin(
         service.apply {
             // Notify flutter with audio updates
             onLoaded = {
-                try {
-                    channel.invokeMethod(FLUTTER_METHOD_ON_LOADED, it)
-                } catch (e: Exception) {
-                    Log.e(this::class.java.simpleName, e.message, e)
-                }
+                invokeMethod(FLUTTER_METHOD_ON_LOADED, it)
             }
 
             onProgressChanged = {
-                try {
-                    channel.invokeMethod(FLUTTER_METHOD_ON_PROGRESS_CHANGED, it)
-                } catch (e: Exception) {
-                    Log.e(this::class.java.simpleName, e.message, e)
-                }
+                invokeMethod(FLUTTER_METHOD_ON_PROGRESS_CHANGED, it)
             }
 
             onResumed = {
-                try {
-                    channel.invokeMethod(FLUTTER_METHOD_ON_RESUMED, null)
-                } catch (e: Exception) {
-                    Log.e(this::class.java.simpleName, e.message, e)
-                }
+                invokeMethod(FLUTTER_METHOD_ON_RESUMED, null)
             }
 
             onPaused = {
-                try {
-                    channel.invokeMethod(FLUTTER_METHOD_ON_PAUSED, null)
-                } catch (e: Exception) {
-                    Log.e(this::class.java.simpleName, e.message, e)
-                }
+                invokeMethod(FLUTTER_METHOD_ON_ERROR, null)
             }
 
             onStopped = {
-                try {
-                    channel.invokeMethod(FLUTTER_METHOD_ON_STOPPED, null)
-                } catch (e: Exception) {
-                    Log.e(this::class.java.simpleName, e.message, e)
-                }
+                invokeMethod(FLUTTER_METHOD_ON_ERROR, null)
             }
 
             onCompleted = {
-                try {
-                    channel.invokeMethod(FLUTTER_METHOD_ON_COMPLETED, null)
-                } catch (e: Exception) {
-                    Log.e(this::class.java.simpleName, e.message, e)
-                }
+                invokeMethod(FLUTTER_METHOD_ON_ERROR, null)
+            }
+            onError = {
+                invokeMethod(FLUTTER_METHOD_ON_ERROR, it)
+            }
+            onBufferStart = {
+                invokeMethod(FLUTTER_METHOD_ON_BUFFERING_START, null)
+            }
+            onBufferEnd = {
+                invokeMethod(FLUTTER_METHOD_ON_BUFFERING_END, null)
+            }
+            onBufferingUpdate = {
+                invokeMethod(FLUTTER_METHOD_ON_BUFFERING_UPDATTE, it)
             }
         }
     }
 
+    private fun invokeMethod(method: String, args: Any?) {
+        try {
+            channel?.invokeMethod(method, args)
+        } catch (e: Exception) {
+            Log.e(this::class.java.simpleName, e.message, e)
+        }
+        }
+
+    private fun atachedToEngine(appContext: Context, messenger: BinaryMessenger) {
+        context = appContext
+        channel = MethodChannel(messenger, CHANNEL)
+          channel?.setMethodCallHandler(this)
+        }
+
+    override fun onAttachedToEngine(binding: FlutterPluginBinding) {
+        atachedToEngine(binding.getApplicationContext(), binding.getBinaryMessenger())
+        }
+
+  override fun onDetachedFromEngine(binding: FlutterPluginBinding) {
+      channel?.setMethodCallHandler(null)
+      context = null
+      channel = null
+    }
+
     private fun releaseAudioService() {
-        serviceConnection?.let { context.unbindService(it) }
-        context.stopService(Intent(context, AudioService::class.java))
+        serviceConnection?.let { context?.unbindService(it) }
+        context?.stopService(Intent(context, AudioService::class.java))
     }
 }

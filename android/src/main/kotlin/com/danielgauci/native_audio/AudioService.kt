@@ -50,6 +50,10 @@ class AudioService : Service() {
     var onPaused: (() -> Unit)? = null
     var onStopped: (() -> Unit)? = null
     var onCompleted: (() -> Unit)? = null
+    var onError: ((String) -> Unit)? = null
+    var onBufferEnd: (() -> Unit)? = null
+    var onBufferingUpdate: ((Int) -> Unit)? = null
+     var onBufferStart: (() -> Unit)? = null
 
     private var currentPlaybackState = PlaybackStateCompat.STATE_STOPPED
     private var oldPlaybackState: Int = Int.MIN_VALUE
@@ -125,7 +129,11 @@ class AudioService : Service() {
                     onProgressChanged?.invoke(it)
                     updatePlaybackState()
                 },
-                onCompleted = { onCompleted?.invoke() }
+                onCompleted = { onCompleted?.invoke() },
+                onError = { onError?.invoke(it) },
+                onBufferStart = { onBufferStart?.invoke() },
+                onBufferEnd = { onBufferEnd?.invoke() },
+                onBufferingUpdate = { onBufferingUpdate?.invoke(it) }
         )
     }
 
