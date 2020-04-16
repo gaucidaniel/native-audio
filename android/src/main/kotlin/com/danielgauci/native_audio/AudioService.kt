@@ -74,7 +74,7 @@ class AudioService : Service() {
     private var resumeOnAudioFocus = false
     private var isNotificationShown = false
     private var notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-    private var metadata = MediaMetadataCompat.fromMediaMetadata(metadataObj)Builder()
+    private var metadata = MediaMetadataCompat.Builder()
     // private var audioList : List<AudioModel>;
 
     private val binder by lazy { AudioServiceBinder() }
