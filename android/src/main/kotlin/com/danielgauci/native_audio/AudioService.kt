@@ -50,6 +50,11 @@ class AudioService : Service() {
     var onPaused: (() -> Unit)? = null
     var onStopped: (() -> Unit)? = null
     var onCompleted: (() -> Unit)? = null
+    var onError: ((String) -> Unit)? = null
+    var onBufferEnd: (() -> Unit)? = null
+    var onBufferingUpdate: ((Int) -> Unit)? = null
+    var onDuration: ((Int) -> Unit)? = null
+    var onBufferStart: (() -> Unit)? = null
 
     private var currentPlaybackState = PlaybackStateCompat.STATE_STOPPED
     private var oldPlaybackState: Int = Int.MIN_VALUE
@@ -125,7 +130,12 @@ class AudioService : Service() {
                     onProgressChanged?.invoke(it)
                     updatePlaybackState()
                 },
-                onCompleted = { onCompleted?.invoke() }
+                onCompleted = { onCompleted?.invoke() },
+                onError = { onError?.invoke(it) },
+                onBufferStart = { onBufferStart?.invoke() },
+                onBufferEnd = { onBufferEnd?.invoke() },
+                onBufferingUpdate = { onBufferingUpdate?.invoke(it) },
+                onDuration = { onDuration?.invoke(it) }
         )
     }
 
@@ -205,11 +215,12 @@ class AudioService : Service() {
             title: String? = null,
             artist: String? = null,
             album: String? = null,
-            imageUrl: String? = null
+            imageUrl: String? = null,
+            isLooping: Boolean? = false
     ) {
         requestFocus()
 
-        audioPlayer.play(url)
+        audioPlayer.play(url, isLooping)
 
         session.isActive = true
         currentPlaybackState = PlaybackStateCompat.STATE_PLAYING
@@ -232,6 +243,10 @@ class AudioService : Service() {
         updatePlaybackState()
 
         onResumed?.invoke()
+    }
+
+    fun getDuration() {
+        audioPlayer.getDuration();
     }
 
     fun pause() {
@@ -262,6 +277,7 @@ class AudioService : Service() {
 
     fun seekTo(timeInMillis: Long) {
         audioPlayer.seekTo(timeInMillis)
+        resume() 
     }
 
     private fun forward30() {

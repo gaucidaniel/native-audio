@@ -17,6 +17,8 @@ This plugin works on both Android and iOS, however the following setup is requir
 Create or modify the `Application` class as follows:
 
 ```kotlin
+package your_package_name
+
 import io.flutter.app.FlutterApplication
 import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugins.GeneratedPluginRegistrant
@@ -30,7 +32,6 @@ class Application : FlutterApplication(), PluginRegistry.PluginRegistrantCallbac
     }
 
     override fun registerWith(registry: PluginRegistry) {
-        GeneratedPluginRegistrant.registerWith(registry)
     }
 }
 ```
