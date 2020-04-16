@@ -216,7 +216,7 @@ class AudioService : Service() {
             artist: String? = null,
             album: String? = null,
             imageUrl: String? = null,
-            isLooping: Boolean? = false
+            isLooping: Boolean? = null
     ) {
         requestFocus()
 

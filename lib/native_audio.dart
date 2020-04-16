@@ -143,7 +143,7 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
         NATIVE_METHOD_PLAY_ARG_ARTIST: artist,
         NATIVE_METHOD_PLAY_ARG_ALBUM: album,
         NATIVE_METHOD_PLAY_ARG_IMAGE_URL: imageUrl,
-        NATIVE_METHOD_PLAY_ARG_LOOPING: isLooping,
+        NATIVE_METHOD_PLAY_ARG_LOOPING: isLooping
       },
     );
     value = value.copyWith(isBuffering: true);
