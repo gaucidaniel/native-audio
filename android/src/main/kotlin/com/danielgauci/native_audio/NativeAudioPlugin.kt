@@ -36,6 +36,8 @@ class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
         private const val NATIVE_METHOD_SEEK_TO_ARG_TIME = "timeInMillis"
         private const val NATIVE_METHOD_RELEASE = "release"
         private const val NATIVE_METHOD_SERVICE_STATUS = "serviceStatus"
+        private const val NATIVE_METHOD_GET_DURATION = "duration"
+        private const val NATIVE_METHOD_PLAY_ARG_LOOPING = "looping"
 
         private const val FLUTTER_METHOD_ON_LOADED = "onLoaded"
         private const val FLUTTER_METHOD_ON_PROGRESS_CHANGED = "onProgressChanged"
@@ -48,6 +50,7 @@ class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
         private const val FLUTTER_METHOD_ON_BUFFERING_START = "bufferingStart"
         private const val FLUTTER_METHOD_ON_BUFFERING_END = "bufferingEnd"
         private const val FLUTTER_METHOD_ON_BUFFERING_UPDATTE = "bufferingUpdate"
+        private const val FLUTTER_METHOD_ON_DURATION = "duration"
 
         private var pluginRegistrantCallback: PluginRegistry.PluginRegistrantCallback? = null
 
@@ -74,8 +77,8 @@ class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
         val isRunning = context?.isServiceRunning(AudioService::class.java) == true
         channel?.invokeMethod(FLUTTER_METHOD_ON_SERVICE_STATUS, isRunning)
         if (!isRunning) return
-        withService {
-            
+        withService { service ->
+            service.resume()
         }
     }
         withService { service ->
@@ -91,22 +94,25 @@ class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
 
             when (call.method) {
                 NATIVE_METHOD_PLAY -> {
+                   
                     withArgument(call, NATIVE_METHOD_PLAY_ARG_URL) { url: String ->
                         // Get optional arguments
                         val title = call.argument<String>(NATIVE_METHOD_PLAY_ARG_TITLE)
                         val artist = call.argument<String>(NATIVE_METHOD_PLAY_ARG_ARTIST)
                         val album = call.argument<String>(NATIVE_METHOD_PLAY_ARG_ALBUM)
                         val imageUrl = call.argument<String>(NATIVE_METHOD_PLAY_ARG_IMAGE_URL)
+                        val isLooping = call.argument<Boolean>(NATIVE_METHOD_PLAY_ARG_LOOPING)
                         NativeAudioPlugin
                         // Call service
                         withService {
-                            it.play(url, title, artist, album, imageUrl)
+                            it.play(url, title, artist, album, imageUrl, isLooping)
                         }
                     }
                 }
                 NATIVE_METHOD_RESUME -> service.resume()
                 NATIVE_METHOD_PAUSE -> service.pause()
                 NATIVE_METHOD_STOP -> service.stop()
+                NATIVE_METHOD_GET_DURATION -> service.getDuration()
                 NATIVE_METHOD_RELEASE -> releaseAudioService()
                 NATIVE_METHOD_SEEK_TO -> {
                     withArgument(call, NATIVE_METHOD_SEEK_TO_ARG_TIME) { timeInMillis: Int ->
@@ -146,7 +152,7 @@ class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
             context?.startService(serviceIntent)
 
             context?.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
-
+            
             // Return and wait for service to be connected
             return
         }
@@ -171,15 +177,15 @@ class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
             }
 
             onPaused = {
-                invokeMethod(FLUTTER_METHOD_ON_ERROR, null)
+                invokeMethod(FLUTTER_METHOD_ON_PAUSED, null)
             }
 
             onStopped = {
-                invokeMethod(FLUTTER_METHOD_ON_ERROR, null)
+                invokeMethod(FLUTTER_METHOD_ON_STOPPED, null)
             }
 
             onCompleted = {
-                invokeMethod(FLUTTER_METHOD_ON_ERROR, null)
+                invokeMethod(FLUTTER_METHOD_ON_COMPLETED, null)
             }
             onError = {
                 invokeMethod(FLUTTER_METHOD_ON_ERROR, it)
@@ -192,6 +198,9 @@ class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
             }
             onBufferingUpdate = {
                 invokeMethod(FLUTTER_METHOD_ON_BUFFERING_UPDATTE, it)
+            }
+            onDuration = {
+                invokeMethod(FLUTTER_METHOD_ON_DURATION, it)
             }
         }
     }
@@ -207,7 +216,7 @@ class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
     private fun atachedToEngine(appContext: Context, messenger: BinaryMessenger) {
         context = appContext
         channel = MethodChannel(messenger, CHANNEL)
-          channel?.setMethodCallHandler(this)
+        channel?.setMethodCallHandler(this)
         }
 
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
@@ -218,10 +227,11 @@ class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
       channel?.setMethodCallHandler(null)
       context = null
       channel = null
+      serviceConnection?.let { context?.unbindService(it) }
     }
 
     private fun releaseAudioService() {
-        serviceConnection?.let { context?.unbindService(it) }
+        // serviceConnection?.let { context?.unbindService(it) }
         context?.stopService(Intent(context, AudioService::class.java))
     }
 }

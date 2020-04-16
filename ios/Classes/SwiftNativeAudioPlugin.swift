@@ -105,7 +105,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                 
             case .failed:
                 log(message: "Failed AVPlayerItem state.")
-                flutterChannel.invokeMethod(flutterMethodOnError, arguments: Int(1))
+                flutterChannel.invokeMethod(flutterMethodOnError, arguments: String("error"))
             case .unknown:
                 log(message: "Unknown AVPlayerItem state.")
             }

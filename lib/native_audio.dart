@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -118,11 +120,21 @@ enum BufferState { MEDIA_INFO_BUFFERING_END, MEDIA_INFO_BUFFERING_START }
 class NativeAudio extends ValueNotifier<NativeAudioValue> {
   static const _channel = const MethodChannel('com.danielgauci.native_audio');
 
-  NativeAudio() : super( NativeAudioValue.uninitialized());
+  NativeAudio() : super(NativeAudioValue.uninitialized());
+  StreamSubscription _subscription;
+  Function onCompletionListener;
+  bool _hasMethodHandler = false;
+  void _initSub() {
+    _subscription =
+        Stream.periodic(Duration(milliseconds: 1000)).listen(_playistener);
+  }
 
   void play(String url,
-      {String title, String artist, String album, String imageUrl}) {
+      {String title, String artist, String album, String imageUrl, bool isLooping = false}) async{
+        if(!_hasMethodHandler)
     _registerMethodCallHandler();
+    if(value.isPlaying)
+      pause();
     _invokeNativeMethod(
       NATIVE_METHOD_PLAY,
       arguments: <String, dynamic>{
@@ -131,9 +143,10 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
         NATIVE_METHOD_PLAY_ARG_ARTIST: artist,
         NATIVE_METHOD_PLAY_ARG_ALBUM: album,
         NATIVE_METHOD_PLAY_ARG_IMAGE_URL: imageUrl,
+        NATIVE_METHOD_PLAY_ARG_LOOPING: isLooping,
       },
     );
-     value = value.copyWith(isBuffering: true);
+    value = value.copyWith(isBuffering: true);
   }
 
   void resume() {
@@ -141,31 +154,35 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
     //  value.copyWith(isPlaying: true);
   }
 
-  void pause() {
-    _invokeNativeMethod(NATIVE_METHOD_PAUSE);
+   void pause()async  {
+   await _invokeNativeMethod(NATIVE_METHOD_PAUSE);
     //  value.copyWith(isPlaying: false);
   }
 
   /// returns if the service is running in the background
   /// typically is called when the app is opened to verify
   /// if a media session is alredy active
-   void checkStatus(Function(bool) handler) async {
+  void checkStatus(Function(bool) handler) async {
     _channel.setMethodCallHandler((methodCall) async {
-      if (methodCall.method == NATIVE_METHOD_ServiceStatus) {
+      if (methodCall.method == NATIVE_METHOD_SERVICE_STATUS) {
         bool isRunning = (methodCall.arguments as bool) ?? false;
         handler(isRunning);
-        if(isRunning) _registerMethodCallHandler();
+        if (isRunning) {
+          _registerMethodCallHandler();
+          // IF THE SERVICE IS ALREADY RUNNIG GET THE DURATION OF THE CURRENT TRACK
+          _invokeNativeMethod(NATIVE_METHOD_GET_DURATION);
+        }
       }
     });
     try {
-      await _channel.invokeMethod(NATIVE_METHOD_ServiceStatus, null);
+      await _channel.invokeMethod(NATIVE_METHOD_SERVICE_STATUS, null);
     } on PlatformException catch (e) {
       handler(false);
     }
   }
 
   void stop() {
-    _invokeNativeMethod(NATIVE_METHOD_STOP);
+      _invokeNativeMethod(NATIVE_METHOD_STOP);
     value.copyWith(isReady: false, isBuffering: false, isPlaying: false);
   }
 
@@ -190,25 +207,41 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
         NATIVE_METHOD_SEEK_TO_ARS_IN_MILLIS: time.inMilliseconds
       },
     );
+    // _playistener();
+  }
+
+  int _position;
+  void _playistener([dynamic event]) {
+    // print('play listener  $_position ${value?.position?.inSeconds}');
+    if (value.isPlaying) {
+      if (_position == value?.position?.inSeconds) {
+        if (!value.isBuffering) value = value.copyWith(isBuffering: true);
+      } else if (value.isBuffering) value = value.copyWith(isBuffering: false);
+    } else if (value.isBuffering) value = value.copyWith(isBuffering: false);
+
+    _position = value?.position?.inSeconds;
   }
 
   /// release the player, stop the audio service
   void release() {
     _invokeNativeMethod(NATIVE_METHOD_RELEASE);
     value = NativeAudioValue.uninitialized();
+    _subscription?.cancel();
   }
 
   void _registerMethodCallHandler() {
+    _hasMethodHandler = true;
     if (value == null) value = NativeAudioValue.uninitialized();
+    _initSub();
     // Listen to method calls from native
     _channel.setMethodCallHandler((methodCall) {
-    print('method call ${methodCall.method}');
+      print('method call ${methodCall.method}');
       switch (methodCall.method) {
         case FLUTTER_METHOD_ON_LOADED:
           int durationInMillis = methodCall.arguments;
           if (durationInMillis != null)
             value = value.copyWith(
-                isReady: true, 
+                isReady: true,
                 isPlaying: true,
                 isBuffering: false,
                 duration: Duration(
@@ -217,7 +250,11 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
           break;
 
         case FLUTTER_METHOD_ON_RESUMED:
-          value = value.copyWith(isPlaying: true);
+          value = value.copyWith(
+            isPlaying: true,
+            isReady: true,
+          );
+          _subscription?.resume();
           break;
         case FLUTTER_METHOD_ON_BUFFER_START:
           value = value.copyWith(isBuffering: true);
@@ -232,16 +269,34 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
           }
 
           break;
+        case FLUTTER_METHOD_ON_DURATION:
+          int durationInMillis = methodCall.arguments;
+          if (durationInMillis != null) {
+            value = value.copyWith(
+                isReady: true,
+                duration: Duration(
+                  milliseconds: durationInMillis,
+                ));
+          }
+
+          break;
         case FLUTTER_METHOD_ON_PAUSED:
           value = value.copyWith(isPlaying: false);
+          _subscription?.pause();
           break;
 
         case FLUTTER_METHOD_ON_STOPPED:
-          value = value.copyWith(isPlaying: false, isBuffering: false);
+          value = value.copyWith(
+              isPlaying: false, isBuffering: false, isReady: false);
+          _subscription?.pause();
           break;
 
         case FLUTTER_METHOD_ON_COMPLETED:
           value = value.copyWith(isPlaying: false, isBuffering: false);
+          stop();
+          if(onCompletionListener != null )onCompletionListener();
+          
+          // _playistener();
           break;
         case FLUTTER_METHOD_ON_ERROR:
           String message = methodCall.arguments;
@@ -288,7 +343,7 @@ const ERROR_CODES = [
 ];
 
 /// status of the background service,
-const NATIVE_METHOD_ServiceStatus = "serviceStatus";
+const NATIVE_METHOD_SERVICE_STATUS = "serviceStatus";
 
 const NATIVE_METHOD_PLAY = "play";
 const NATIVE_METHOD_PLAY_ARG_URL = "url";
@@ -296,12 +351,15 @@ const NATIVE_METHOD_PLAY_ARG_TITLE = "title";
 const NATIVE_METHOD_PLAY_ARG_ARTIST = "artist";
 const NATIVE_METHOD_PLAY_ARG_ALBUM = "album";
 const NATIVE_METHOD_PLAY_ARG_IMAGE_URL = "imageUrl";
+const NATIVE_METHOD_PLAY_ARG_LOOPING = "looping";
 const NATIVE_METHOD_RESUME = "resume";
 const NATIVE_METHOD_PAUSE = "pause";
 const NATIVE_METHOD_STOP = "stop";
 const NATIVE_METHOD_SEEK_TO = "seekTo";
 const NATIVE_METHOD_SEEK_TO_ARS_IN_MILLIS = "timeInMillis";
 const NATIVE_METHOD_RELEASE = "release";
+const NATIVE_METHOD_GET_DURATION = "duration";
+
 const FLUTTER_METHOD_ON_LOADED = "onLoaded";
 const FLUTTER_METHOD_ON_RESUMED = "onResumed";
 const FLUTTER_METHOD_ON_PAUSED = "onPaused";
@@ -312,3 +370,4 @@ const FLUTTER_METHOD_ON_ERROR = "onError";
 const FLUTTER_METHOD_ON_BUFFER_START = "OnBufferStart";
 const FLUTTER_METHOD_ON_BUFFER_END = "OnBufferEnd";
 const FLUTTER_METHOD_ON_BUFFER_UPDATE = "bufferingUpdate";
+const FLUTTER_METHOD_ON_DURATION = "duration";

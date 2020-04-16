@@ -12,6 +12,7 @@ class AudioPlayer(
     private val onBufferStart: (() -> Unit)? = null,
     private val onBufferEnd: (() -> Unit)? = null,
     private val onBufferingUpdate: ((Int) -> Unit)? = null,
+    private val onDuration: ((Int) -> Unit)? = null,
     private val onError: ((String) -> Unit)? = null
 ) {
 
@@ -20,14 +21,23 @@ class AudioPlayer(
     private var progressCallback: Runnable? = null
     private var currentProgress = 0L
     private var isLoaded = false
+    private var isLooping = false
 
-    fun play(url: String) {
+    fun play(url: String, looping: Boolean?) {
+        isLooping = looping ?: false;
         if (mediaPlayer == null) initMediaPlayer()
-
+        Log.d(this::class.java.simpleName, "initMediaPlayer")
         if (mediaPlayer?.isPlaying == true) stop()
-
+        Log.d(this::class.java.simpleName, "stop")
         loadAudio(url)
+        Log.d(this::class.java.simpleName, "loadAudio")
         startListeningForProgress()
+    }
+
+    fun getDuration() {
+        mediaPlayer?.apply { if (isLoaded)
+        onDuration?.invoke(getDuration())
+    }
     }
 
     fun resume() {
@@ -52,7 +62,7 @@ class AudioPlayer(
     }
 
     fun seekTo(timeInMillis: Long) {
-        mediaPlayer?.apply { if (isLoaded) seekTo(timeInMillis.toInt()) }
+        mediaPlayer?.apply {   if (isLoaded) seekTo(timeInMillis.toInt()) }
     }
 
     fun release() {
@@ -65,6 +75,14 @@ class AudioPlayer(
 
     private fun loadAudio(url: String) {
         mediaPlayer?.apply {
+            setOnInfoListener { mp, what, extra ->
+                Log.d(this::class.java.simpleName, "Oninfo -  code: $what Extra code: $extra")
+                when (what) {
+                  MediaPlayer.MEDIA_INFO_BUFFERING_START -> onBufferStart?.invoke()
+                  MediaPlayer.MEDIA_INFO_BUFFERING_END -> onBufferEnd?.invoke()
+                }
+                 false
+               }
             setOnErrorListener { mp, what, extra ->
                 when (what) {
                     MediaPlayer.MEDIA_ERROR_UNKNOWN -> onError?.invoke("MEDIA_ERROR_UNKNOWN")
@@ -87,10 +105,12 @@ class AudioPlayer(
             setOnBufferingUpdateListener { mp, what ->
                 onBufferingUpdate?.invoke(what)
             }
+            
 
             reset()
             setDataSource(url)
             prepareAsync()
+            // setLooping(isLooping)
         }
     }
 
@@ -99,6 +119,7 @@ class AudioPlayer(
             setOnPreparedListener {
                 // Start audio once loaded
                 start()
+                
 
                 // Notify callback
                 onLoaded?.invoke(duration.toLong())
@@ -106,7 +127,7 @@ class AudioPlayer(
 
                 // Update flags
                 isLoaded = true
-            setOnInfoListener { mp, what, extra ->
+               setOnInfoListener { mp, what, extra ->
                 Log.d(this::class.java.simpleName, "Oninfo -  code: $what Extra code: $extra")
                 when (what) {
                   MediaPlayer.MEDIA_INFO_BUFFERING_START -> onBufferStart?.invoke()
@@ -115,7 +136,14 @@ class AudioPlayer(
                  false
                }
             }
-
+            setOnInfoListener { mp, what, extra ->
+                Log.d(this::class.java.simpleName, "Oninfo -  code: $what Extra code: $extra")
+                when (what) {
+                  MediaPlayer.MEDIA_INFO_BUFFERING_START -> onBufferStart?.invoke()
+                  MediaPlayer.MEDIA_INFO_BUFFERING_END -> onBufferEnd?.invoke()
+                }
+                 false
+               }
             setOnCompletionListener {
                 // Notify callback
                 onCompleted?.invoke()
