@@ -24,6 +24,7 @@ class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
         private const val CHANNEL = "com.danielgauci.native_audio"
 
         private const val NATIVE_METHOD_PLAY = "play"
+        private const val NATIVE_METHOD_SET_QUEUE = "setQueue"
         private const val NATIVE_METHOD_PLAY_ARG_URL = "url"
         private const val NATIVE_METHOD_PLAY_ARG_TITLE = "title"
         private const val NATIVE_METHOD_PLAY_ARG_ARTIST = "artist"
@@ -110,6 +111,7 @@ class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
                     }
                 }
                 NATIVE_METHOD_RESUME -> service.resume()
+                // NATIVE_METHOD_SET_QUEUE -> service.resume()
                 NATIVE_METHOD_PAUSE -> service.pause()
                 NATIVE_METHOD_STOP -> service.stop()
                 NATIVE_METHOD_GET_DURATION -> service.getDuration()
@@ -129,6 +131,7 @@ class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
 
         withArgument(argument)
     }
+    
 
     private fun withService(withService: (AudioService) -> Unit) {
         if (audioService == null) {
