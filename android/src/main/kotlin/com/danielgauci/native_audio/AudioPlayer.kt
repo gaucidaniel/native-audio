@@ -26,10 +26,10 @@ class AudioPlayer(
     fun play(url: String, looping: Boolean?) {
         isLooping = looping ?: false;
         if (mediaPlayer == null) initMediaPlayer()
-        Log.d(this::class.java.simpleName, "initMediaPlayer")
+        Log.d(this::class.java.simpleName, "initMediaPlayer $looping, $isLooping")
         if (mediaPlayer?.isPlaying == true) stop()
         Log.d(this::class.java.simpleName, "stop")
-        loadAudio(url)
+        loadAudio(url, looping ?: false)
         Log.d(this::class.java.simpleName, "loadAudio")
         startListeningForProgress()
     }
@@ -39,6 +39,12 @@ class AudioPlayer(
         onDuration?.invoke(getDuration())
     }
     }
+
+    // fun getStatus() {
+    //     mediaPlayer?.apply { if (isLoaded)
+    //     onDuration?.invoke(getDuration())
+    // }
+    // }
 
     fun resume() {
         mediaPlayer?.apply { if (isLoaded && !isPlaying) start() }
@@ -73,10 +79,10 @@ class AudioPlayer(
         mediaPlayer = null
     }
 
-    private fun loadAudio(url: String) {
+    private fun loadAudio(url: String, looping: Boolean) {
         mediaPlayer?.apply {
             setOnInfoListener { mp, what, extra ->
-                Log.d(this::class.java.simpleName, "Oninfo -  code: $what Extra code: $extra")
+                Log.d(this::class.java.simpleName, "Oninfo_loadaudio -  code: $what Extra code: $extra")
                 when (what) {
                   MediaPlayer.MEDIA_INFO_BUFFERING_START -> onBufferStart?.invoke()
                   MediaPlayer.MEDIA_INFO_BUFFERING_END -> onBufferEnd?.invoke()
@@ -109,8 +115,11 @@ class AudioPlayer(
 
             reset()
             setDataSource(url)
+            setLooping(looping)
+            Log.d(this::class.java.simpleName, "looping value $looping")
             prepareAsync()
-            // setLooping(isLooping)
+           
+
         }
     }
 
@@ -120,24 +129,17 @@ class AudioPlayer(
                 // Start audio once loaded
                 start()
                 
-
+                // setLooping(true);
                 // Notify callback
                 onLoaded?.invoke(duration.toLong())
                 Log.d(this::class.java.simpleName, "OnPreparedListener -  code: ${it.duration} Extra ")
 
                 // Update flags
                 isLoaded = true
-               setOnInfoListener { mp, what, extra ->
-                Log.d(this::class.java.simpleName, "Oninfo -  code: $what Extra code: $extra")
-                when (what) {
-                  MediaPlayer.MEDIA_INFO_BUFFERING_START -> onBufferStart?.invoke()
-                  MediaPlayer.MEDIA_INFO_BUFFERING_END -> onBufferEnd?.invoke()
-                }
-                 false
-               }
+               
             }
             setOnInfoListener { mp, what, extra ->
-                Log.d(this::class.java.simpleName, "Oninfo -  code: $what Extra code: $extra")
+                Log.d(this::class.java.simpleName, "Oninfo_init -  code: $what Extra code: $extra")
                 when (what) {
                   MediaPlayer.MEDIA_INFO_BUFFERING_START -> onBufferStart?.invoke()
                   MediaPlayer.MEDIA_INFO_BUFFERING_END -> onBufferEnd?.invoke()
@@ -152,7 +154,7 @@ class AudioPlayer(
                 isLoaded = false
 
                 // Release
-                this@AudioPlayer.release()
+                // this@AudioPlayer.release()
             }
         }
     }
