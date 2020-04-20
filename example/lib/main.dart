@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:native_audio/native_audio.dart';
 
 void main() => runApp(MyApp());
@@ -41,14 +39,26 @@ class _MyAppState extends State<MyApp> {
               child: Text(_status, textAlign: TextAlign.center),
             ),
             SizedBox(height: 48),
-            if (!_isLoaded) MaterialButton(child: Text("Play"), onPressed: () => _playSampleAudio()),
-            if (_isLoaded) MaterialButton(child: Text("Stop"), onPressed: () => _audio.stop()),
-            if (!_isPlaying && _isLoaded) MaterialButton(child: Text("Resume"), onPressed: () => _audio.resume()),
-            if (_isPlaying) MaterialButton(child: Text("Pause"), onPressed: () => _audio.pause()),
+            if (!_isLoaded)
+              MaterialButton(
+                  child: Text("Play"), onPressed: () => _playSampleAudio()),
             if (_isLoaded)
-              MaterialButton(child: Text("Seek to 30m"), onPressed: () => _audio.seekTo(Duration(minutes: 30))),
+              MaterialButton(
+                  child: Text("Stop"), onPressed: () => _audio.stop()),
+            if (!_isPlaying && _isLoaded)
+              MaterialButton(
+                  child: Text("Resume"), onPressed: () => _audio.resume()),
+            if (_isPlaying)
+              MaterialButton(
+                  child: Text("Pause"), onPressed: () => _audio.pause()),
             if (_isLoaded)
-              MaterialButton(child: Text("Seek to 70m"), onPressed: () => _audio.seekTo(Duration(minutes: 70))),
+              MaterialButton(
+                  child: Text("Seek to 30m"),
+                  onPressed: () => _audio.seekTo(Duration(minutes: 30))),
+            if (_isLoaded)
+              MaterialButton(
+                  child: Text("Seek to 70m"),
+                  onPressed: () => _audio.seekTo(Duration(minutes: 70))),
           ],
         ),
       ),
@@ -100,11 +110,22 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _playSampleAudio() {
-    _audio.play("https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3",
+    // File
+    _audio.play(
+        "https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3",
         title: "How The Fashion Industry Is Responding To Climate Change",
         album: "Science Friday",
         artist: "WNYC Studio",
-        imageUrl: "https://www.sciencefriday.com/wp-content/uploads/2019/09/clothes-close-min.jpg");
+        imageUrl:
+            "https://www.sciencefriday.com/wp-content/uploads/2019/09/clothes-close-min.jpg");
+
+    // Streaming
+    // _audio.play("https://stream.laut.fm/a-dance",
+    //     title: "A Dance",
+    //     album: "Radio Live",
+    //     artist: "WOI-FM",
+    //     imageUrl:
+    //         "https://laut.fm/assets/images/lautfm/lautfm-logo-share-image.png?d9268a36");
   }
 
   String _durationToString(Duration duration) {
