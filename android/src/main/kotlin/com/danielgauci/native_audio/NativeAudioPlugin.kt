@@ -48,10 +48,10 @@ class NativeAudioPlugin : MethodCallHandler, FlutterPlugin {
         private const val FLUTTER_METHOD_ON_COMPLETED = "onCompleted"
         private const val FLUTTER_METHOD_ON_ERROR = "onError"
         private const val FLUTTER_METHOD_ON_SERVICE_STATUS = "serviceStatus"
-        private const val FLUTTER_METHOD_ON_BUFFERING_START = "bufferingStart"
-        private const val FLUTTER_METHOD_ON_BUFFERING_END = "bufferingEnd"
-        private const val FLUTTER_METHOD_ON_BUFFERING_UPDATTE = "bufferingUpdate"
-        private const val FLUTTER_METHOD_ON_DURATION = "duration"
+        private const val FLUTTER_METHOD_ON_BUFFERING_START = "onBufferingStart"
+        private const val FLUTTER_METHOD_ON_BUFFERING_END = "onBufferingEnd"
+        private const val FLUTTER_METHOD_ON_BUFFERING_UPDATTE = "onBufferingUpdate"
+        private const val FLUTTER_METHOD_ON_DURATION = "onDuration"
 
         private var pluginRegistrantCallback: PluginRegistry.PluginRegistrantCallback? = null
 

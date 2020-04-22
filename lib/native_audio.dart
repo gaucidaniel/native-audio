@@ -125,7 +125,7 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
   Function onCompletionListener;
   bool _hasMethodHandler = false;
   void _initSub() {
-    _subscription =
+    _subscription =  
         Stream.periodic(Duration(milliseconds: 1000)).listen(_playistener);
   }
 
@@ -235,7 +235,7 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
     _initSub();
     // Listen to method calls from native
     _channel.setMethodCallHandler((methodCall) {
-      print('method call ${methodCall.method}');
+      // print('method call ${methodCall.method}');
       switch (methodCall.method) {
         case FLUTTER_METHOD_ON_LOADED:
           int durationInMillis = methodCall.arguments;
@@ -367,7 +367,7 @@ const FLUTTER_METHOD_ON_STOPPED = "onStopped";
 const FLUTTER_METHOD_ON_PROGRESS_CHANGED = "onProgressChanged";
 const FLUTTER_METHOD_ON_COMPLETED = "onCompletedAction";
 const FLUTTER_METHOD_ON_ERROR = "onError";
-const FLUTTER_METHOD_ON_BUFFER_START = "OnBufferStart";
-const FLUTTER_METHOD_ON_BUFFER_END = "OnBufferEnd";
-const FLUTTER_METHOD_ON_BUFFER_UPDATE = "bufferingUpdate";
-const FLUTTER_METHOD_ON_DURATION = "duration";
+const FLUTTER_METHOD_ON_BUFFER_START = "onBufferingStart";
+const FLUTTER_METHOD_ON_BUFFER_END = "onBufferingEnd";
+const FLUTTER_METHOD_ON_BUFFER_UPDATE = "onBufferingUpdate";
+const FLUTTER_METHOD_ON_DURATION = "onDuration";
