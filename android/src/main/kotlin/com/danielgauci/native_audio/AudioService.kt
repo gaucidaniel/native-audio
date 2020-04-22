@@ -31,6 +31,7 @@ import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import java.util.concurrent.TimeUnit
 
+
 class AudioService : Service() {
 
     companion object {
@@ -41,6 +42,16 @@ class AudioService : Service() {
         private const val NOTIFICATION_CHANNEL_ID = "media_playback_channel"
         private const val NOTIFICATION_CHANNEL_NAME = "Media Playback"
         private const val NOTIFICATION_CHANNEL_DESCRIPTION = "Media Playback Controls"
+
+        // private  fun createMediaMetadata( title : String,
+        // album : String, artist : String,  imageUrl : String): MediaMetadataCompat {
+		// return MediaMetadataCompat.fromMediaMetadata({
+        //     "title": title,
+        //     "artist": artist,
+        //     "album": album,
+        //     "imageUrl": imageUrl,
+        // });
+	// }
     }
 
     // TODO: Confirm that this does not leak the activity
@@ -50,6 +61,11 @@ class AudioService : Service() {
     var onPaused: (() -> Unit)? = null
     var onStopped: (() -> Unit)? = null
     var onCompleted: (() -> Unit)? = null
+    var onError: ((String) -> Unit)? = null
+    var onBufferEnd: (() -> Unit)? = null
+    var onBufferingUpdate: ((Int) -> Unit)? = null
+    var onDuration: ((Int) -> Unit)? = null
+    var onBufferStart: (() -> Unit)? = null
 
     private var currentPlaybackState = PlaybackStateCompat.STATE_STOPPED
     private var oldPlaybackState: Int = Int.MIN_VALUE
@@ -59,6 +75,7 @@ class AudioService : Service() {
     private var isNotificationShown = false
     private var notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
     private var metadata = MediaMetadataCompat.Builder()
+    // private var audioList : List<AudioModel>;
 
     private val binder by lazy { AudioServiceBinder() }
     private val session by lazy {
@@ -125,7 +142,12 @@ class AudioService : Service() {
                     onProgressChanged?.invoke(it)
                     updatePlaybackState()
                 },
-                onCompleted = { onCompleted?.invoke() }
+                onCompleted = { onCompleted?.invoke() },
+                onError = { onError?.invoke(it) },
+                onBufferStart = { onBufferStart?.invoke() },
+                onBufferEnd = { onBufferEnd?.invoke() },
+                onBufferingUpdate = { onBufferingUpdate?.invoke(it) },
+                onDuration = { onDuration?.invoke(it) }
         )
     }
 
@@ -200,16 +222,24 @@ class AudioService : Service() {
         audioPlayer.release()
     }
 
+//     fun setQueue(items: List<Map<String, var>>) {
+//      var q : List<MediaMetadataCompat> =  emptyList();
+//     for (i in items) {
+//         q.p
+//     }
+// }
+
     fun play(
             url: String,
             title: String? = null,
             artist: String? = null,
             album: String? = null,
-            imageUrl: String? = null
+            imageUrl: String? = null,
+            isLooping: Boolean? = null
     ) {
         requestFocus()
 
-        audioPlayer.play(url)
+        audioPlayer.play(url, isLooping)
 
         session.isActive = true
         currentPlaybackState = PlaybackStateCompat.STATE_PLAYING
@@ -232,6 +262,10 @@ class AudioService : Service() {
         updatePlaybackState()
 
         onResumed?.invoke()
+    }
+
+    fun getDuration() {
+        audioPlayer.getDuration();
     }
 
     fun pause() {
@@ -262,6 +296,7 @@ class AudioService : Service() {
 
     fun seekTo(timeInMillis: Long) {
         audioPlayer.seekTo(timeInMillis)
+        resume() 
     }
 
     private fun forward30() {
@@ -372,6 +407,13 @@ class AudioService : Service() {
                     MediaButtonReceiver.buildMediaButtonPendingIntent(this@AudioService, PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
             ).build()
             addAction(forwardAction)
+             // Add fast forward action
+             val stopAction = NotificationCompat.Action.Builder(
+                R.drawable.stop,
+                "Fast Forward",
+                MediaButtonReceiver.buildMediaButtonPendingIntent(this@AudioService, PlaybackStateCompat.ACTION_STOP)
+        ).build()
+        addAction(stopAction)
         }
     }
 
