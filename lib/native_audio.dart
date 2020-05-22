@@ -281,7 +281,7 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
 
           break;
         case FLUTTER_METHOD_ON_PAUSED:
-          value = value.copyWith(isPlaying: false);
+          value = value.copyWith(isPlaying: false, );
           _subscription?.pause();
           break;
 
