@@ -16,6 +16,8 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     private let flutterMethodOnStopped = "onStopped"
     private let flutterMethodOnCompleted = "onCompleted"
     private let flutterMethodOnError = "onError"
+    private let flutterMethodOnBufferStart = "onBufferingStart"
+    private let flutterMethodOnBufferEnd = "onBufferingEnd"
     
     private var flutterController : FlutterViewController!
     private var flutterChannel: FlutterMethodChannel!
@@ -82,9 +84,27 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                                context: context)
             return
         }
+
+         if object is AVPlayerItem {
+        if keyPath == "playbackBufferEmpty" {
+               // Show loader
+             log(message: "buffering")
+                      flutterChannel.invokeMethod(flutterMethodOnBufferStart, arguments: "")
+            } else if keyPath == "playbackLikelyToKeepUp" {
+                // Hide loader
+            log(message: "buffering stop")
+                      flutterChannel.invokeMethod(flutterMethodOnBufferEnd, arguments: "")
+            } else if keyPath ==  "playbackBufferFull" {
+                // Hide loader
+                     log(message: "buffering stop")
+                      flutterChannel.invokeMethod(flutterMethodOnBufferEnd, arguments: "")
+            }
+        }
+    
         
         if keyPath == #keyPath(AVPlayerItem.status) {
             let status: AVPlayerItem.Status
+            
             if let statusNumber = change?[.newKey] as? NSNumber {
                 status = AVPlayerItem.Status(rawValue: statusNumber.intValue)!
             } else {
@@ -102,7 +122,19 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                 
                 // Update control center
                 MPNowPlayingInfoCenter.default().nowPlayingInfo![MPMediaItemPropertyPlaybackDuration] = CMTimeGetSeconds(avPlayerItem.duration)
-                
+               if keyPath == "playbackBufferEmpty" {
+                // Show loader
+                log(message: "buffering")
+                        flutterChannel.invokeMethod(flutterMethodOnBufferStart, arguments: "")
+                } else if keyPath == "playbackLikelyToKeepUp" {
+                    // Hide loader
+                log(message: "buffering stop")
+                        flutterChannel.invokeMethod(flutterMethodOnBufferEnd, arguments: "")
+                } else if keyPath ==  "playbackBufferFull" {
+                    // Hide loader
+                        log(message: "buffering stop")
+                        flutterChannel.invokeMethod(flutterMethodOnBufferEnd, arguments: "")
+                }
             case .failed:
                 log(message: "Failed AVPlayerItem state.")
                 flutterChannel.invokeMethod(flutterMethodOnError, arguments: String("error"))
