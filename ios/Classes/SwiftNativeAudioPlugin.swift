@@ -28,7 +28,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     private var skipForwardTimeInMillis = 30_000
     private var skipBackwardTimeInMillis = 15_000
     private var isSeeking = false
-
+    
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
         let instance = SwiftNativeAudioPlugin(withChannel: channel)
@@ -116,6 +116,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                 log(message: "Failed AVPlayerItem state.")
             case .unknown:
                 log(message: "Unknown AVPlayerItem state.")
+            default: ()
             }
         }
     }
@@ -234,7 +235,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             return false
         }
     }
-        
+    
     private func seekTo(timeInMillis: Int) {
         if let player = avPlayer {
             // Playback is not automatically paused when seeking, handle this manually
@@ -243,7 +244,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             
             self.isSeeking = true
             self.flutterChannel.invokeMethod(self.flutterMethodOnProgressChanged, arguments: timeInMillis)
-
+            
             // Add a second to the requested time since AVPlayer will seek to a second before the requested time
             let time = CMTimeMakeWithSeconds(Float64((timeInMillis + 1000) / 1000), preferredTimescale: CMTimeScale(NSEC_PER_SEC))
             player.seek(to: time, completionHandler: { success in
