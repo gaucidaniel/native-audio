@@ -172,7 +172,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         }
     }
     
-    private func resume() {
+    private func resume(notifyFlutterChannel: Bool = true) {
         if let player = avPlayer {
             player.play()
             if player.currentItem != nil {
@@ -181,10 +181,12 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             }
         }
         
-        flutterChannel.invokeMethod(flutterMethodOnResumed, arguments: "")
+        if (notifyFlutterChannel){
+            flutterChannel.invokeMethod(flutterMethodOnResumed, arguments: "")
+        }
     }
     
-    private func pause() {
+    private func pause(notifyFlutterChannel: Bool = true) {
         if let player = avPlayer {
             player.pause()
             if player.currentItem != nil {
@@ -193,7 +195,9 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             }
         }
         
-        flutterChannel.invokeMethod(flutterMethodOnPaused, arguments: "")
+        if (notifyFlutterChannel)    {
+            flutterChannel.invokeMethod(flutterMethodOnPaused, arguments: "")
+        }
     }
     
     private func stop() {
@@ -240,7 +244,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         if let player = avPlayer {
             // Playback is not automatically paused when seeking, handle this manually
             let isPlaying = player.rate > 0.0
-            if (isPlaying) {pause()}
+            if (isPlaying) {pause(notifyFlutterChannel: false)}
             
             self.isSeeking = true
             self.flutterChannel.invokeMethod(self.flutterMethodOnProgressChanged, arguments: timeInMillis)
@@ -250,7 +254,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             player.seek(to: time, completionHandler: { success in
                 // Resume playback if player was previously playing
                 if (isPlaying){
-                    self.resume()
+                    self.resume(notifyFlutterChannel: false)
                 }
                 
                 // Update info center
