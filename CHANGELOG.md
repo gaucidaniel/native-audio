@@ -1,3 +1,10 @@
+## 0.0.18
+
+* Support audio interruptions on iOS
+* Fix seeking precision on iOS
+* Fix build warnings on iOS
+* Support latest Flutter version for Example app
+
 ## 0.0.17
 
 * Fixed crashes when calling stop() while the audio is already stopped
