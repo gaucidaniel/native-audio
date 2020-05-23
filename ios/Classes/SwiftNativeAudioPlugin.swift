@@ -94,13 +94,22 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             case .readyToPlay:
                 // Update listener
                 let duration = avPlayerItem.duration
-                let durationInSeconds = CMTimeGetSeconds(duration)
+                var durationInSeconds = CMTimeGetSeconds(duration)
+
+                if (CMTIME_IS_INDEFINITE(duration)) {
+                    durationInSeconds = 0.0
+                    
+                    if #available(iOS 10.0, *) {
+                        MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyIsLiveStream] = true
+                    }
+                }
+                
                 totalDurationInMillis = Int(1000 * durationInSeconds)
                 
                 flutterChannel.invokeMethod(flutterMethodOnLoaded, arguments: Int(totalDurationInMillis))
                 
                 // Update control center
-                MPNowPlayingInfoCenter.default().nowPlayingInfo![MPMediaItemPropertyPlaybackDuration] = CMTimeGetSeconds(avPlayerItem.duration)
+                MPNowPlayingInfoCenter.default().nowPlayingInfo![MPMediaItemPropertyPlaybackDuration] = durationInSeconds
                 
             case .failed:
                 log(message: "Failed AVPlayerItem state.")
@@ -127,9 +136,16 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         
         // Setup player
         avPlayer = AVPlayer.init(playerItem: avPlayerItem)
-        if #available(iOS 10, *){
-            // Skips initial buffering
-            avPlayer.automaticallyWaitsToMinimizeStalling = false
+        
+        /**
+          For more information, see [automaticallyWaitsToMinimizeStalling]
+          (https://developer.apple.com/documentation/avfoundation/avplayer/1643482-automaticallywaitstominimizestal)
+         */
+        if (!CMTIME_IS_INDEFINITE(avPlayerItem.duration)) {
+            if #available(iOS 10, *) {
+                // Skips initial buffering
+                avPlayer.automaticallyWaitsToMinimizeStalling = false
+            }
         }
         
         avPlayer.play()
