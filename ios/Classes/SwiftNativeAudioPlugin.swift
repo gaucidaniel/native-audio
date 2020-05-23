@@ -95,7 +95,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                 // Update listener
                 let duration = avPlayerItem.duration
                 var durationInSeconds = CMTimeGetSeconds(duration)
-
+                
                 if (CMTIME_IS_INDEFINITE(duration)) {
                     durationInSeconds = 0.0
                     
@@ -138,8 +138,8 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         avPlayer = AVPlayer.init(playerItem: avPlayerItem)
         
         /**
-          For more information, see [automaticallyWaitsToMinimizeStalling]
-          (https://developer.apple.com/documentation/avfoundation/avplayer/1643482-automaticallywaitstominimizestal)
+         For more information, see [automaticallyWaitsToMinimizeStalling]
+         (https://developer.apple.com/documentation/avfoundation/avplayer/1643482-automaticallywaitstominimizestal)
          */
         if (!CMTIME_IS_INDEFINITE(avPlayerItem.duration)) {
             if #available(iOS 10, *) {
@@ -152,6 +152,9 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         
         // Observe finished playing
         NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(notification:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: avPlayerItem)
+        
+        // Observe interruptions
+        NotificationCenter.default.addObserver(self, selector: #selector(self.handleInterruption(notification:)), name: AVAudioSession.interruptionNotification, object: nil)
         
         // Set audio session as active to play in background
         do {
@@ -247,7 +250,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             player.seek(to: time, completionHandler: { success in
                 // Update Flutter progress
                 self.flutterChannel.invokeMethod(self.flutterMethodOnProgressChanged, arguments: timeInMillis)
-
+                
                 // Resume playback if player was previously playing
                 if (isPlaying){
                     self.resume()
@@ -325,10 +328,6 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         flutterChannel.invokeMethod(flutterMethodOnProgressChanged, arguments: timeInMillis)
     }
     
-    @objc func playerDidFinishPlaying(notification: Notification) {
-        flutterChannel.invokeMethod(flutterMethodOnCompleted, arguments: "")
-    }
-    
     private func cleanUp() {
         // Cleanup player
         if let player = avPlayer {
@@ -339,10 +338,10 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             
             avPlayer = nil
         }
-       
+        
         // Cleanup player item
         if let playerItem = avPlayerItem {
-           playerItem.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
+            playerItem.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
             avPlayerItem = nil
         }
         
@@ -353,6 +352,38 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     private func log(message: StaticString) {
         if #available(iOS 10.0, *) {
             os_log(message)
+        }
+    }
+    
+    @objc func playerDidFinishPlaying(notification: Notification) {
+        flutterChannel.invokeMethod(flutterMethodOnCompleted, arguments: "")
+    }
+    
+    @objc func handleInterruption(notification: Notification) {
+        guard let userInfo = notification.userInfo,
+            let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+            let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+                return
+        }
+        
+        // Switch over the interruption type
+        switch type {
+            
+        case .began:
+            // An interruption began
+            pause()
+        case .ended:
+            // An interruption ended. Resume playback, if appropriate.
+            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+            if options.contains(.shouldResume) {
+                // Interruption ended. Playback should resume.
+                resume()
+            } else {
+                // Interruption ended. Playback should not resume.
+            }
+            
+        default: ()
         }
     }
 }
