@@ -27,7 +27,8 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     private var totalDurationInMillis = -1
     private var skipForwardTimeInMillis = 30_000
     private var skipBackwardTimeInMillis = 15_000
-    
+    private var isSeeking = false
+
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
         let instance = SwiftNativeAudioPlugin(withChannel: channel)
@@ -137,15 +138,9 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         // Setup player
         avPlayer = AVPlayer.init(playerItem: avPlayerItem)
         
-        /**
-         For more information, see [automaticallyWaitsToMinimizeStalling]
-         (https://developer.apple.com/documentation/avfoundation/avplayer/1643482-automaticallywaitstominimizestal)
-         */
-        if (!CMTIME_IS_INDEFINITE(avPlayerItem.duration)) {
-            if #available(iOS 10, *) {
-                // Skips initial buffering
-                avPlayer.automaticallyWaitsToMinimizeStalling = false
-            }
+        // Skips initial buffering
+        if #available(iOS 10, *) {
+            avPlayer.automaticallyWaitsToMinimizeStalling = false
         }
         
         avPlayer.play()
@@ -239,18 +234,19 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             return false
         }
     }
-    
+        
     private func seekTo(timeInMillis: Int) {
         if let player = avPlayer {
             // Playback is not automatically paused when seeking, handle this manually
             let isPlaying = player.rate > 0.0
             if (isPlaying) {pause()}
             
-            let time = CMTimeMakeWithSeconds(Float64(timeInMillis / 1000), preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+            self.isSeeking = true
+            self.flutterChannel.invokeMethod(self.flutterMethodOnProgressChanged, arguments: timeInMillis)
+
+            // Add a second to the requested time since AVPlayer will seek to a second before the requested time
+            let time = CMTimeMakeWithSeconds(Float64((timeInMillis + 1000) / 1000), preferredTimescale: CMTimeScale(NSEC_PER_SEC))
             player.seek(to: time, completionHandler: { success in
-                // Update Flutter progress
-                self.flutterChannel.invokeMethod(self.flutterMethodOnProgressChanged, arguments: timeInMillis)
-                
                 // Resume playback if player was previously playing
                 if (isPlaying){
                     self.resume()
@@ -260,6 +256,8 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                 if player.currentItem != nil {
                     MPNowPlayingInfoCenter.default().nowPlayingInfo![MPNowPlayingInfoPropertyElapsedPlaybackTime] = Float64(timeInMillis / 1000)
                 }
+                
+                self.isSeeking = false
             })
         }
     }
@@ -324,8 +322,10 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     }
     
     private func progressChanged(timeInMillis: Int) {
-        currentProgressInMillis = timeInMillis
-        flutterChannel.invokeMethod(flutterMethodOnProgressChanged, arguments: timeInMillis)
+        if (!isSeeking) {
+            currentProgressInMillis = timeInMillis
+            flutterChannel.invokeMethod(flutterMethodOnProgressChanged, arguments: timeInMillis)
+        }
     }
     
     private func cleanUp() {
@@ -368,7 +368,6 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         
         // Switch over the interruption type
         switch type {
-            
         case .began:
             // An interruption began
             pause()
