@@ -1,3 +1,7 @@
+## 0.0.19
+
+* Stop onPause and onResumed from being called when seeking on iOS
+
 ## 0.0.18
 
 * Support audio interruptions on iOS
