@@ -110,22 +110,11 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _playSampleAudio() {
-    // File
-    _audio.play(
-        "https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3",
+    _audio.play("https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3",
         title: "How The Fashion Industry Is Responding To Climate Change",
         album: "Science Friday",
         artist: "WNYC Studio",
-        imageUrl:
-            "https://www.sciencefriday.com/wp-content/uploads/2019/09/clothes-close-min.jpg");
-
-    // Streaming
-    // _audio.play("https://stream.laut.fm/a-dance",
-    //     title: "A Dance",
-    //     album: "Radio Live",
-    //     artist: "WOI-FM",
-    //     imageUrl:
-    //         "https://laut.fm/assets/images/lautfm/lautfm-logo-share-image.png?d9268a36");
+        imageUrl: "https://www.sciencefriday.com/wp-content/uploads/2019/09/clothes-close-min.jpg");
   }
 
   String _durationToString(Duration duration) {
