@@ -339,7 +339,7 @@ class AudioService : Service() {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOnlyAlertOnce(true)
                 .setOngoing(true)
-                .setSmallIcon(R.drawable.ic_play)
+                .setSmallIcon(R.drawable.native_audio_notification_icon)
                 .setContentIntent(contentIntent)
                 .setDeleteIntent(stopIntent)
                 .setContentTitle(title)
