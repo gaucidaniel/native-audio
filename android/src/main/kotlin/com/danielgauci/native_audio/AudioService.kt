@@ -339,7 +339,7 @@ class AudioService : Service() {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOnlyAlertOnce(true)
                 .setOngoing(true)
-                .setSmallIcon(R.drawable.play)
+                .setSmallIcon(R.drawable.ic_play)
                 .setContentIntent(contentIntent)
                 .setDeleteIntent(stopIntent)
                 .setContentTitle(title)
@@ -360,25 +360,25 @@ class AudioService : Service() {
         builder.apply {
             mActions.clear()
 
-            // Add play/pause action
-            val playPauseAction = NotificationCompat.Action.Builder(
-                    if (isPlaying) R.drawable.pause else R.drawable.play,
-                    if (isPlaying) "Pause" else "Play",
-                    MediaButtonReceiver.buildMediaButtonPendingIntent(this@AudioService, PlaybackStateCompat.ACTION_PLAY_PAUSE)
-            ).build()
-            addAction(playPauseAction)
-
             // Add rewind action
             val rewindAction = NotificationCompat.Action.Builder(
-                    R.drawable.rewind_30,
+                    R.drawable.ic_rewind,
                     "Rewind",
                     MediaButtonReceiver.buildMediaButtonPendingIntent(this@AudioService, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
             ).build()
             addAction(rewindAction)
 
+            // Add ic_play/ic_pause action
+            val playPauseAction = NotificationCompat.Action.Builder(
+                    if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
+                    if (isPlaying) "Pause" else "Play",
+                    MediaButtonReceiver.buildMediaButtonPendingIntent(this@AudioService, PlaybackStateCompat.ACTION_PLAY_PAUSE)
+            ).build()
+            addAction(playPauseAction)
+
             // Add fast forward action
             val forwardAction = NotificationCompat.Action.Builder(
-                    R.drawable.fast_forward_30,
+                    R.drawable.ic_forward,
                     "Fast Forward",
                     MediaButtonReceiver.buildMediaButtonPendingIntent(this@AudioService, PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
             ).build()
