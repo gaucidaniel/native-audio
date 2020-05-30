@@ -175,7 +175,7 @@ class AudioService : Service() {
                         }
                         AudioManager.AUDIOFOCUS_LOSS -> {
                             resumeOnAudioFocus = false
-                            stop()
+                            pause()
                         }
                     }
                 }
