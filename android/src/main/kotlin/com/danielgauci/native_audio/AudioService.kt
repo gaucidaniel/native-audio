@@ -9,17 +9,15 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.media.AudioManager
-import android.media.session.PlaybackState
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION
-import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE
-import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST
-import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ALBUM_ART
+import android.support.v4.media.MediaMetadataCompat.*
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.view.KeyEvent
+import android.view.KeyEvent.*
 import androidx.annotation.ColorInt
 import androidx.core.app.NotificationCompat
 import androidx.media.AudioFocusRequestCompat
@@ -64,14 +62,27 @@ class AudioService : Service() {
     private val session by lazy {
         MediaSessionCompat(this, MEDIA_SESSION_TAG).apply {
             setCallback(object : MediaSessionCompat.Callback() {
-                override fun onPlay() {
-                    super.onPlay()
-                    resume()
-                }
+                override fun onMediaButtonEvent(mediaButtonEvent: Intent): Boolean {
+                    // Handle play/pause events manually since onPlay/onPause are not always called on bluetooth devices
+                    val keyEvent = mediaButtonEvent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
+                    if (keyEvent.action == ACTION_DOWN) {
+                        when (keyEvent.keyCode) {
+                            KEYCODE_MEDIA_PLAY -> {
+                                resume()
+                                return true
+                            }
+                            KEYCODE_MEDIA_PAUSE -> {
+                                pause()
+                                return true
+                            }
+                            KEYCODE_MEDIA_PLAY_PAUSE -> {
+                                if (isPlaying()) pause() else resume()
+                                return true
+                            }
+                        }
+                    }
 
-                override fun onPause() {
-                    super.onPause()
-                    pause()
+                    return super.onMediaButtonEvent(mediaButtonEvent)
                 }
 
                 override fun onStop() {
