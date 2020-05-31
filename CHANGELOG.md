@@ -1,3 +1,7 @@
+## 0.0.22
+
+* Fix skip forward and skip backward not working on Android
+
 ## 0.0.21
 
 * Update changelog and readme
