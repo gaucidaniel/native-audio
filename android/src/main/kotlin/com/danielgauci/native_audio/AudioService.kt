@@ -31,8 +31,8 @@ import java.util.concurrent.TimeUnit
 class AudioService : Service() {
 
     companion object {
-        var SKIP_FORWARD_TIME_MILLIS = 30L
-        var SKIP_BACKWARD_TIME_MILLIS = 10L
+        var SKIP_FORWARD_TIME_MILLIS = 30_000L
+        var SKIP_BACKWARD_TIME_MILLIS = 10_000L
 
         private const val MEDIA_SESSION_TAG = "com.danielgauci.native_audio"
 
@@ -278,16 +278,14 @@ class AudioService : Service() {
     }
 
     fun skipForward() {
-        val forwardTime = TimeUnit.SECONDS.toMillis(SKIP_FORWARD_TIME_MILLIS)
-        if (durationInMillis - currentPositionInMillis > forwardTime) {
-            seekTo(currentPositionInMillis + forwardTime.toInt())
+        if (durationInMillis - currentPositionInMillis > SKIP_FORWARD_TIME_MILLIS) {
+            seekTo(currentPositionInMillis + SKIP_FORWARD_TIME_MILLIS.toInt())
         }
     }
 
     fun skipBackward() {
-        val backwardTime = TimeUnit.SECONDS.toMillis(SKIP_BACKWARD_TIME_MILLIS)
-        if (currentPositionInMillis - backwardTime > 0) {
-            seekTo(currentPositionInMillis - backwardTime.toInt())
+        if (currentPositionInMillis - SKIP_BACKWARD_TIME_MILLIS > 0) {
+            seekTo(currentPositionInMillis - SKIP_BACKWARD_TIME_MILLIS.toInt())
         }
     }
 
