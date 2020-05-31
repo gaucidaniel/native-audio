@@ -1,3 +1,7 @@
+## 0.0.21
+
+* Update changelog and readme
+
 ## 0.0.20
 
 * Add configurable skip forward and backward times (used for notification, skipForward() and skipBackward())
