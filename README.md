@@ -9,6 +9,7 @@ This plugin works on both Android and iOS, however the following setup is requir
 ### Android
 
 #### Prerequisite
+
 - Flutter Project MinSDK 21
 - [Flutter Project AndroidX](https://flutter.dev/docs/development/androidx-migration#how-do-i-migrate-my-existing-app-plugin-or-host-editable-module-project-to-androidx)
 
@@ -46,39 +47,29 @@ This must be reflected in the application's `AndroidManifest.xml`. E.g.:
 **Note:** Not calling `NativeAudioPlugin.setPluginRegistrant` will result in an exception being
 thrown when audio is played.
 
-#### 2. Service & Permissions
-
-Add the following lines to your `AndroidManifest.xml` to register the background service for
-geofencing:
-
-```xml
-<receiver android:name="androidx.media.session.MediaButtonReceiver">
-    <intent-filter>
-        <action android:name="android.intent.action.MEDIA_BUTTON" />
-    </intent-filter>
-</receiver>
-
-<service android:name="com.danielgauci.native_audio.AudioService">
-    <intent-filter>
-        <action android:name="android.intent.action.MEDIA_BUTTON" />
-        <action android:name="android.media.browse.MediaBrowserService" />
-    </intent-filter>
-</service>
-```
-
-As well as the following lines to setup the permissions required:
-
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.BLUETOOTH" />
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-<uses-permission android:name="android.permission.WAKE_LOCK" />
-```
-
 ### iOS
 
 #### Prerequisite
+
 - Flutter Project minimum `iOS 10`
 - Flutter Project minimum build `Swift 4.2`
 
 No additional setup is required for iOS 🍏
+
+
+
+## Customization
+
+#### Notification Icon
+
+Simply add a drawable named `native_audio_notification_icon` to your drawables to override the notification icon. This can be in .xml or in any other Android supported format.
+
+Note: This is only useful for Android. On iOS, the launcher icon will always be used.
+
+#### Setting skip times
+
+Setting the skip times controls the time that will be skipped forward/backward when `skipForward()`, `skipBackward()` or the media icons in the notification are called.
+
+```
+_audio.setSkipTime(forwardTime: Duration(seconds: 30), backwardTime: Duration(seconds: 10));
+```

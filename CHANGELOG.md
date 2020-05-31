@@ -1,3 +1,12 @@
+## 0.0.20
+
+* Add configurable skip forward and backward times (used for notification, skipForward() and skipBackward())
+* Include Android manifest changes within the library's manifest to simplify installation. Existing native-audio permissions, services and broadcast receivers can now be removed from the app's manifest.
+* Create overridable notification icon for Android. Simply add a drawable named `native_audio_notification_icon` to your drawables to override the notification icon.
+* Pause audio instead of stopping when audio focus is lost on Android
+* Fix inconsistent play/pause button on Bluetooth devices on Android
+* Update media notification styling on Android
+
 ## 0.0.19
 
 * Stop onPause and onResumed from being called when seeking on iOS
