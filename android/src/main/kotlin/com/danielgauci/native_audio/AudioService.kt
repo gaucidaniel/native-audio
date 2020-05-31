@@ -12,7 +12,6 @@ import android.media.AudioManager
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
-import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.*
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -32,6 +31,9 @@ import java.util.concurrent.TimeUnit
 class AudioService : Service() {
 
     companion object {
+        var SKIP_FORWARD_TIME_MILLIS = 30L
+        var SKIP_BACKWARD_TIME_MILLIS = 10L
+
         private const val MEDIA_SESSION_TAG = "com.danielgauci.native_audio"
 
         private const val NOTIFICATION_ID = 10
@@ -56,7 +58,7 @@ class AudioService : Service() {
     private var resumeOnAudioFocus = false
     private var isNotificationShown = false
     private var notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-    private var metadata = MediaMetadataCompat.Builder()
+    private var metadata = Builder()
 
     private val binder by lazy { AudioServiceBinder() }
     private val session by lazy {
@@ -97,22 +99,22 @@ class AudioService : Service() {
 
                 override fun onSkipToNext() {
                     super.onSkipToNext()
-                    forward30()
+                    skipForward()
                 }
 
                 override fun onSkipToPrevious() {
                     super.onSkipToPrevious()
-                    rewind30()
+                    skipBackward()
                 }
 
                 override fun onFastForward() {
                     super.onFastForward()
-                    forward30()
+                    skipForward()
                 }
 
                 override fun onRewind() {
                     super.onRewind()
-                    rewind30()
+                    skipBackward()
                 }
             })
         }
@@ -275,17 +277,17 @@ class AudioService : Service() {
         audioPlayer.seekTo(timeInMillis)
     }
 
-    private fun forward30() {
-        val forwardTime = TimeUnit.SECONDS.toMillis(30)
+    fun skipForward() {
+        val forwardTime = TimeUnit.SECONDS.toMillis(SKIP_FORWARD_TIME_MILLIS)
         if (durationInMillis - currentPositionInMillis > forwardTime) {
             seekTo(currentPositionInMillis + forwardTime.toInt())
         }
     }
 
-    private fun rewind30() {
-        val rewindTime = TimeUnit.SECONDS.toMillis(30)
-        if (currentPositionInMillis - rewindTime > 0) {
-            seekTo(currentPositionInMillis - rewindTime.toInt())
+    fun skipBackward() {
+        val backwardTime = TimeUnit.SECONDS.toMillis(SKIP_BACKWARD_TIME_MILLIS)
+        if (currentPositionInMillis - backwardTime > 0) {
+            seekTo(currentPositionInMillis - backwardTime.toInt())
         }
     }
 

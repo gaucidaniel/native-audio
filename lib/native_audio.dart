@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
 class NativeAudio {
@@ -12,8 +13,13 @@ class NativeAudio {
   static const _nativeMethodResume = "resume";
   static const _nativeMethodPause = "pause";
   static const _nativeMethodStop = "stop";
+  static const _nativeMethodSkipForward = "skipForward";
+  static const _nativeMethodSkipBackward = "skipBackward";
   static const _nativeMethodSeekTo = "seekTo";
   static const _nativeMethodSeekToArgTimeInMillis = "timeInMillis";
+  static const _nativeMethodSetSkipTime = "setSkipTime";
+  static const _nativeMethodSkipTimeArgForwardMillis = "forwardMillis";
+  static const _nativeMethodSetSkipTimeArgBackwardMillis = "backwardMillis";
   static const _nativeMethodRelease = "release";
   static const _flutterMethodOnLoaded = "onLoaded";
   static const _flutterMethodOnResumed = "onResumed";
@@ -61,6 +67,27 @@ class NativeAudio {
     _invokeNativeMethod(
       _nativeMethodSeekTo,
       arguments: <String, dynamic>{_nativeMethodSeekToArgTimeInMillis: time.inMilliseconds},
+    );
+  }
+
+  void skipForward() {
+    _invokeNativeMethod(_nativeMethodSkipForward);
+  }
+
+  void skipBackward() {
+    _invokeNativeMethod(_nativeMethodSkipBackward);
+  }
+
+  void setSkipTime({
+    @required Duration forwardTime,
+    @required Duration backwardTime,
+  }) {
+    _invokeNativeMethod(
+      _nativeMethodSetSkipTime,
+      arguments: <String, dynamic>{
+        _nativeMethodSkipTimeArgForwardMillis: forwardTime.inMilliseconds,
+        _nativeMethodSetSkipTimeArgBackwardMillis: backwardTime.inMilliseconds,
+      },
     );
   }
 

@@ -26,7 +26,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     private var currentProgressInMillis = -1
     private var totalDurationInMillis = -1
     private var skipForwardTimeInMillis = 30_000
-    private var skipBackwardTimeInMillis = 15_000
+    private var skipBackwardTimeInMillis = 10_000
     private var isSeeking = false
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -63,10 +63,22 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         case "stop":
             self.stop()
             
+        case "skipForward":
+            self.skipForward()
+            
+        case "skipBackward":
+            self.skipBackward()
+            
         case "seekTo":
             let arguments = call.arguments as! NSDictionary
             let timeInMillis =  arguments["timeInMillis"] as! Int
             self.seekTo(timeInMillis: timeInMillis)
+            
+        case "setSkipTime":
+            let arguments = call.arguments as! NSDictionary
+            let forwardMillis =  arguments["forwardMillis"] as! Int
+            let backwardMillis =  arguments["backwardMillis"] as! Int
+            self.setSkipTime(forwardMillis: forwardMillis, backwardMillis: backwardMillis)
             
         default:
             self.log(message: "Unknown method called on Native Audio Player channel.")
@@ -265,6 +277,11 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                 self.isSeeking = false
             })
         }
+    }
+    
+    private func setSkipTime(forwardMillis: Int, backwardMillis: Int) {
+        skipForwardTimeInMillis = forwardMillis
+        skipBackwardTimeInMillis = backwardMillis
     }
     
     private func setupRemoteTransportControls() {

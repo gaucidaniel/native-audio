@@ -32,10 +32,14 @@ class NativeAudioPlugin(
         private const val NATIVE_METHOD_RESUME = "resume"
         private const val NATIVE_METHOD_PAUSE = "pause"
         private const val NATIVE_METHOD_STOP = "stop"
+        private const val NATIVE_METHOD_SKIP_FORWARD = "skipForward"
+        private const val NATIVE_METHOD_SKIP_BACKWARD = "skipBackward"
         private const val NATIVE_METHOD_SEEK_TO = "seekTo"
         private const val NATIVE_METHOD_SEEK_TO_ARG_TIME = "timeInMillis"
         private const val NATIVE_METHOD_RELEASE = "release"
-
+        private const val NATIVE_METHOD_SET_SKIP_TIME = "setSkipTime"
+        private const val NATIVE_METHOD_SET_SKIP_TIME_ARG_FORWARD_MILLIS = "forwardMillis"
+        private const val NATIVE_METHOD_SET_SKIP_TIME_ARG_BACKWARD_MILLIS = "backwardMillis"
         private const val FLUTTER_METHOD_ON_LOADED = "onLoaded"
         private const val FLUTTER_METHOD_ON_PROGRESS_CHANGED = "onProgressChanged"
         private const val FLUTTER_METHOD_ON_RESUMED = "onResumed"
@@ -93,8 +97,18 @@ class NativeAudioPlugin(
                 NATIVE_METHOD_STOP -> service.stop()
                 NATIVE_METHOD_RELEASE -> releaseAudioService()
                 NATIVE_METHOD_SEEK_TO -> {
-                    withArgument(call, NATIVE_METHOD_SEEK_TO_ARG_TIME) { timeInMillis: Int ->
-                        service.seekTo(timeInMillis.toLong())
+                    withArgument(call, NATIVE_METHOD_SEEK_TO_ARG_TIME) { timeInMillis: Long ->
+                        service.seekTo(timeInMillis)
+                    }
+                }
+                NATIVE_METHOD_SKIP_FORWARD -> service.skipForward()
+                NATIVE_METHOD_SKIP_BACKWARD -> service.skipBackward()
+                NATIVE_METHOD_SET_SKIP_TIME -> {
+                    withArgument(call, NATIVE_METHOD_SET_SKIP_TIME_ARG_FORWARD_MILLIS) { forward: Long ->
+                        withArgument(call, NATIVE_METHOD_SET_SKIP_TIME_ARG_BACKWARD_MILLIS) { rewind: Long ->
+                            AudioService.SKIP_FORWARD_TIME_MILLIS = forward
+                            AudioService.SKIP_BACKWARD_TIME_MILLIS = rewind
+                        }
                     }
                 }
             }
