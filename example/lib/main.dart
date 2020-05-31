@@ -98,6 +98,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _playSampleAudio() {
+    setState(() => _status = "loading");
     _audio.play("https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3",
         title: "How The Fashion Industry Is Responding To Climate Change",
         album: "Science Friday",
