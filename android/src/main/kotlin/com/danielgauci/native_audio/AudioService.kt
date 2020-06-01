@@ -138,7 +138,10 @@ class AudioService : Service() {
                     onProgressChanged?.invoke(it)
                     updatePlaybackState()
                 },
-                onCompleted = { onCompleted?.invoke() }
+                onCompleted = {
+                    stop()
+                    onCompleted?.invoke()
+                }
         )
     }
 
@@ -262,6 +265,8 @@ class AudioService : Service() {
         audioPlayer.stop()
 
         currentPlaybackState = PlaybackStateCompat.STATE_STOPPED
+        currentPositionInMillis = 0
+        durationInMillis = 0
 
         cancelNotification()
         session.isActive = false
