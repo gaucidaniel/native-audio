@@ -1,3 +1,7 @@
+## 0.0.23
+
+* Fix notification not being dismissed on Android when playback is complete
+
 ## 0.0.22
 
 * Fix skip forward and skip backward not working on Android
