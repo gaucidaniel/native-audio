@@ -1,3 +1,7 @@
+## 0.0.24
+
+* Fix onProgressChanged called before onLoaded on iOS
+
 ## 0.0.23
 
 * Fix notification not being dismissed on Android when playback is complete
