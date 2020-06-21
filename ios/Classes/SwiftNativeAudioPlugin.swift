@@ -27,8 +27,9 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     private var totalDurationInMillis = -1
     private var skipForwardTimeInMillis = 30_000
     private var skipBackwardTimeInMillis = 10_000
+    private var isReadyToPlay = false
     private var isSeeking = false
-    
+
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
         let instance = SwiftNativeAudioPlugin(withChannel: channel)
@@ -123,6 +124,9 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                 
                 // Update control center
                 MPNowPlayingInfoCenter.default().nowPlayingInfo![MPMediaItemPropertyPlaybackDuration] = durationInSeconds
+                
+                // Update state
+                isReadyToPlay = true
                 
             case .failed:
                 log(message: "Failed AVPlayerItem state.")
@@ -344,7 +348,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     }
     
     private func progressChanged(timeInMillis: Int) {
-        if (!isSeeking) {
+        if (isReadyToPlay && !isSeeking) {
             currentProgressInMillis = timeInMillis
             flutterChannel.invokeMethod(flutterMethodOnProgressChanged, arguments: timeInMillis)
         }
@@ -369,6 +373,9 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         
         // Remove notification center observers
         NotificationCenter.default.removeObserver(self)
+        
+        // Reset state
+        isReadyToPlay = false
     }
     
     private func log(message: StaticString) {
