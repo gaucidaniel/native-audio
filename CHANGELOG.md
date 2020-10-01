@@ -1,3 +1,7 @@
+## 0.0.25
+
+* Fix onProgressChanged not called when seeking while playback is paused on Android
+
 ## 0.0.24
 
 * Fix onProgressChanged called before onLoaded on iOS

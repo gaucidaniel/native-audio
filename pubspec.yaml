@@ -1,6 +1,6 @@
 name: native_audio
 description: An audio plugin for Flutter which makes use of the native Android and iOS audio players, handling playback, notifications and external controls.
-version: 0.0.24
+version: 0.0.25
 homepage: https://github.com/gaucidaniel/native-audio
 
 environment:
