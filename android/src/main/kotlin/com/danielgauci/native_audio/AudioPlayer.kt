@@ -48,7 +48,14 @@ class AudioPlayer(
     }
 
     fun seekTo(timeInMillis: Long) {
-        mediaPlayer?.apply { if (isLoaded) seekTo(timeInMillis.toInt()) }
+        mediaPlayer?.apply {
+            if (isLoaded) {
+                // Manually notify onProgressChanged since it is not called automatically if player is paused
+                onProgressChanged?.invoke(timeInMillis)
+
+                seekTo(timeInMillis.toInt())
+            }
+        }
     }
 
     fun release() {
