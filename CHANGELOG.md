@@ -1,3 +1,7 @@
+## 0.1.0
+
+* Allow skipping forward and backward near the start and end of the stream respectively. For example, with the new behavior when only 5 seconds remain from the stream and the user attempts to skip forward (with a skip time larger than 5 seconds), the stream will end, whereas with previous versions the skip would be ignored. Should the previous behavior still be desired, it should be implemented within the hosting application.
+
 ## 0.0.25
 
 * Fix onProgressChanged not called when seeking while playback is paused on Android
