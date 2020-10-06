@@ -235,25 +235,16 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     }
     
     private func skipForward() -> Bool {
-        if (totalDurationInMillis > currentProgressInMillis + skipForwardTimeInMillis) {
-            // Episode is loaded and there is enough time to skip forward
-            seekTo(timeInMillis: currentProgressInMillis + skipForwardTimeInMillis)
-            return true
-        } else {
-            print("Unable to skip forward, episode is not loaded or there is not enough time to skip forward")
-            return false
-        }
+        seekTo(timeInMillis: currentProgressInMillis + skipForwardTimeInMillis)
+        return true
     }
     
     private func skipBackward() -> Bool {
-        if (currentProgressInMillis - skipBackwardTimeInMillis > 0) {
-            // Episode is loaded and there is enough time to skip backward
-            seekTo(timeInMillis: currentProgressInMillis - skipBackwardTimeInMillis)
-            return true
-        } else {
-            print("Unable to skip backward, episode is not loaded or there is not enough time to skip backward")
-            return false
-        }
+        // If trying to skip backward more than the start of the audio, manually seek to 0s to
+        // avoid receiving a progress update with a negative time
+        let seekTime = currentProgressInMillis - skipBackwardTimeInMillis
+        seekTo(timeInMillis: seekTime < 0 ? 0 : seekTime)
+        return true
     }
     
     private func seekTo(timeInMillis: Int) {

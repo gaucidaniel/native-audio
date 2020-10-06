@@ -283,15 +283,14 @@ class AudioService : Service() {
     }
 
     fun skipForward() {
-        if (durationInMillis - currentPositionInMillis > SKIP_FORWARD_TIME_MILLIS) {
-            seekTo(currentPositionInMillis + SKIP_FORWARD_TIME_MILLIS.toInt())
-        }
+        seekTo(currentPositionInMillis + SKIP_FORWARD_TIME_MILLIS.toInt())
     }
 
     fun skipBackward() {
-        if (currentPositionInMillis - SKIP_BACKWARD_TIME_MILLIS > 0) {
-            seekTo(currentPositionInMillis - SKIP_BACKWARD_TIME_MILLIS.toInt())
-        }
+        // If trying to skip backward more than the start of the audio, manually seek to 0s to
+        // avoid receiving a progress update with a negative time
+        val seekTime = currentPositionInMillis - SKIP_BACKWARD_TIME_MILLIS
+        seekTo(if (seekTime < 0) 0 else seekTime)
     }
 
     private fun requestFocus() {
