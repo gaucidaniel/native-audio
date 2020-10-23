@@ -26,7 +26,6 @@ import androidx.palette.graphics.Palette
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
-import java.util.concurrent.TimeUnit
 
 class AudioService : Service() {
 
@@ -138,6 +137,9 @@ class AudioService : Service() {
                     onProgressChanged?.invoke(it)
                     updatePlaybackState()
                 },
+                onResumed = onResumed,
+                onPaused = onPaused,
+                onStopped = onStopped,
                 onCompleted = {
                     stop()
                     onCompleted?.invoke()
@@ -221,11 +223,13 @@ class AudioService : Service() {
             title: String? = null,
             artist: String? = null,
             album: String? = null,
-            imageUrl: String? = null
+            imageUrl: String? = null,
+            startAutomatically: Boolean = true,
+            startFromMillis: Long = 0L
     ) {
         requestFocus()
 
-        audioPlayer.play(url)
+        audioPlayer.play(url, startAutomatically, startFromMillis)
 
         session.isActive = true
         currentPlaybackState = PlaybackStateCompat.STATE_PLAYING
@@ -246,8 +250,6 @@ class AudioService : Service() {
 
         currentPlaybackState = PlaybackStateCompat.STATE_PLAYING
         updatePlaybackState()
-
-        onResumed?.invoke()
     }
 
     fun pause() {
@@ -255,8 +257,6 @@ class AudioService : Service() {
 
         currentPlaybackState = PlaybackStateCompat.STATE_PAUSED
         updatePlaybackState()
-
-        onPaused?.invoke()
 
         if (!resumeOnAudioFocus) abandonFocus()
     }
@@ -270,8 +270,6 @@ class AudioService : Service() {
 
         cancelNotification()
         session.isActive = false
-
-        onStopped?.invoke()
 
         abandonFocus()
 

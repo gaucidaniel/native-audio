@@ -29,6 +29,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     private var skipBackwardTimeInMillis = 10_000
     private var isReadyToPlay = false
     private var isSeeking = false
+    private var currentItemStartsAutomatically = false
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
@@ -52,8 +53,10 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             let artist =  arguments["artist"] as! String
             let album =  arguments["album"] as! String
             let imageUrl =  arguments["imageUrl"] as! String
+            let startAutomatically =  arguments["startAutomatically"] as! Bool
+            let startFromMillis =  arguments["startFromMillis"] as! Int
             
-            self.play(url: url, title: title, artist: artist, album: album, imageUrl: imageUrl)
+            self.play(url: url, title: title, artist: artist, album: album, imageUrl: imageUrl, startAutomatically: startAutomatically, startFromMillis: startFromMillis)
             
         case "resume":
             self.resume()
@@ -128,6 +131,11 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                 // Update state
                 isReadyToPlay = true
                 
+                // Start playback if requested
+                if (currentItemStartsAutomatically){
+                    resume()
+                }
+                
             case .failed:
                 log(message: "Failed AVPlayerItem state.")
             case .unknown:
@@ -137,7 +145,15 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         }
     }
     
-    private func play(url: String, title: String, artist: String, album: String, imageUrl: String) {
+    private func play(
+        url: String,
+        title: String,
+        artist: String,
+        album: String,
+        imageUrl: String,
+        startAutomatically: Bool,
+        startFromMillis: Int
+    ) {
         // Pause any ongoing playback and clean up resources. stop() is not called since we do not want to notify the Flutter channel
         if (avPlayer != nil) {avPlayer.pause()}
         cleanUp()
@@ -160,7 +176,13 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             avPlayer.automaticallyWaitsToMinimizeStalling = false
         }
         
-        avPlayer.play()
+        // Seek if start time other than 0 requested
+        if (startFromMillis > 0) {
+            seekTo(timeInMillis: startFromMillis)
+        }
+        
+        // Update startsAutomatically flag which is checked onLoaded
+        currentItemStartsAutomatically = startAutomatically
         
         // Observe finished playing
         NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(notification:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: avPlayerItem)
@@ -381,9 +403,9 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     
     @objc func handleInterruption(notification: Notification) {
         guard let userInfo = notification.userInfo,
-            let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
-            let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
-                return
+              let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+            return
         }
         
         // Switch over the interruption type

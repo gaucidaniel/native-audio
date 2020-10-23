@@ -7,6 +7,9 @@ import java.util.concurrent.TimeUnit
 
 class AudioPlayer(
         private val onLoaded: ((duration: Long) -> Unit)? = null,
+        private val onResumed: (() -> Unit)? = null,
+        private var onPaused: (() -> Unit)? = null,
+        private var onStopped: (() -> Unit)? = null,
         private val onProgressChanged: ((currentTime: Long) -> Unit)? = null,
         private val onCompleted: (() -> Unit)? = null
 ) {
@@ -17,31 +20,71 @@ class AudioPlayer(
     private var currentProgress = 0L
     private var isLoaded = false
 
-    fun play(url: String) {
-        if (mediaPlayer == null) initMediaPlayer()
+    fun play(url: String, startWhenPrepared: Boolean = true, startFromMillis: Long = 0L) {
+        if (mediaPlayer == null) mediaPlayer = MediaPlayer()
 
-        if (mediaPlayer?.isPlaying == true) stop()
+        mediaPlayer?.apply {
+            // Stop audio if already playing
+            if (isPlaying) stop()
 
+            // Set listeners
+            setOnPreparedListener {
+                // Update flags
+                isLoaded = true
+
+                // Notify callback
+                onLoaded?.invoke(duration.toLong())
+
+                // Seek if start time is not 0
+                if (startFromMillis > 0) seekTo(startFromMillis)
+
+                // Start audio once loaded
+                if (startWhenPrepared) resume()
+            }
+
+            setOnCompletionListener {
+                // Notify callback
+                onCompleted?.invoke()
+
+                // Update flags
+                isLoaded = false
+
+                // Release
+                this@AudioPlayer.release()
+            }
+        }
+
+        // Load audio
         loadAudio(url)
-        startListeningForProgress()
     }
 
     fun resume() {
-        mediaPlayer?.apply { if (isLoaded && !isPlaying) start() }
+        mediaPlayer?.apply {
+            if (isLoaded && !isPlaying) {
+                start()
+                onResumed?.invoke()
+            }
+        }
+
         startListeningForProgress()
     }
 
     fun pause() {
-        mediaPlayer?.apply { if (isPlaying) pause() }
+        mediaPlayer?.apply {
+            if (isPlaying) {
+                pause()
+                onPaused?.invoke()
+            }
+        }
+
         stopListeningForProgress()
     }
 
     fun stop(release: Boolean = true) {
         mediaPlayer?.apply {
-            if (isPlaying) {
-                this.stop()
-                this.reset()
-            }
+            this.stop()
+            this.reset()
+            onStopped?.invoke()
         }
 
         if (release) release()
@@ -78,32 +121,6 @@ class AudioPlayer(
             reset()
             setDataSource(url)
             prepareAsync()
-        }
-    }
-
-    private fun initMediaPlayer() {
-        mediaPlayer = MediaPlayer().apply {
-            setOnPreparedListener {
-                // Start audio once loaded
-                start()
-
-                // Notify callback
-                onLoaded?.invoke(duration.toLong())
-
-                // Update flags
-                isLoaded = true
-            }
-
-            setOnCompletionListener {
-                // Notify callback
-                onCompleted?.invoke()
-
-                // Update flags
-                isLoaded = false
-
-                // Release
-                this@AudioPlayer.release()
-            }
         }
     }
 
