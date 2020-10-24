@@ -20,7 +20,9 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    _audio.setSkipTime(forwardTime: Duration(seconds: 30), backwardTime: Duration(seconds: 10));
+    _audio.setSkipTime(
+        forwardTime: Duration(seconds: 30),
+        backwardTime: Duration(seconds: 10));
     _listenForAudioEvents();
   }
 
@@ -41,16 +43,34 @@ class _MyAppState extends State<MyApp> {
               child: Text(_status, textAlign: TextAlign.center),
             ),
             SizedBox(height: 48),
-            if (!_isLoaded) MaterialButton(child: Text("Play"), onPressed: () => _playSampleAudio()),
-            if (_isLoaded) MaterialButton(child: Text("Stop"), onPressed: () => _audio.stop()),
-            if (!_isPlaying && _isLoaded) MaterialButton(child: Text("Resume"), onPressed: () => _audio.resume()),
-            if (_isPlaying) MaterialButton(child: Text("Pause"), onPressed: () => _audio.pause()),
+            if (!_isLoaded)
+              MaterialButton(
+                  child: Text("Play"), onPressed: () => _playSampleAudio()),
             if (_isLoaded)
-              MaterialButton(child: Text("Seek to 30m"), onPressed: () => _audio.seekTo(Duration(minutes: 30))),
+              MaterialButton(
+                  child: Text("Stop"), onPressed: () => _audio.stop()),
+            if (!_isPlaying && _isLoaded)
+              MaterialButton(
+                  child: Text("Resume"), onPressed: () => _audio.resume()),
+            if (_isPlaying)
+              MaterialButton(
+                  child: Text("Pause"), onPressed: () => _audio.pause()),
             if (_isLoaded)
-              MaterialButton(child: Text("Seek to 70m"), onPressed: () => _audio.seekTo(Duration(minutes: 70))),
-            if (_isLoaded) MaterialButton(child: Text("Skip Forward"), onPressed: () => _audio.skipForward()),
-            if (_isLoaded) MaterialButton(child: Text("Skip Backward"), onPressed: () => _audio.skipBackward()),
+              MaterialButton(
+                  child: Text("Seek to 30m"),
+                  onPressed: () => _audio.seekTo(Duration(minutes: 30))),
+            if (_isLoaded)
+              MaterialButton(
+                  child: Text("Seek to 70m"),
+                  onPressed: () => _audio.seekTo(Duration(minutes: 70))),
+            if (_isLoaded)
+              MaterialButton(
+                  child: Text("Skip Forward"),
+                  onPressed: () => _audio.skipForward()),
+            if (_isLoaded)
+              MaterialButton(
+                  child: Text("Skip Backward"),
+                  onPressed: () => _audio.skipBackward()),
           ],
         ),
       ),
@@ -103,11 +123,13 @@ class _MyAppState extends State<MyApp> {
 
   void _playSampleAudio() {
     setState(() => _status = "loading");
-    _audio.play("https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3",
+    _audio.play(
+        "https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3",
         title: "How The Fashion Industry Is Responding To Climate Change",
         album: "Science Friday",
         artist: "WNYC Studio",
-        imageUrl: "https://www.sciencefriday.com/wp-content/uploads/2019/09/clothes-close-min.jpg");
+        imageUrl:
+            "https://www.sciencefriday.com/wp-content/uploads/2019/09/clothes-close-min.jpg");
   }
 
   String _durationToString(Duration duration) {

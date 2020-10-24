@@ -24,8 +24,10 @@ class NativeAudio {
   static const _nativeMethodSetSkipTimeArgBackwardMillis = "backwardMillis";
   static const _nativeMethodRelease = "release";
   static const _flutterMethodOnLoaded = "onLoaded";
-  static const _flutterMethodOnLoadedArgTotalDurationInMillis = "totalDurationInMillis";
-  static const _flutterMethodOnLoadedArgStartedAutomatically = "startedAutomatically";
+  static const _flutterMethodOnLoadedArgTotalDurationInMillis =
+      "totalDurationInMillis";
+  static const _flutterMethodOnLoadedArgStartedAutomatically =
+      "startedAutomatically";
   static const _flutterMethodOnResumed = "onResumed";
   static const _flutterMethodOnPaused = "onPaused";
   static const _flutterMethodOnStopped = "onStopped";
@@ -60,7 +62,8 @@ class NativeAudio {
         _nativeMethodPlayArgAlbum: album,
         _nativeMethodPlayArgImageUrl: imageUrl,
         _nativeMethodPlayArgStartAutomatically: startAutomatically,
-        _nativeMethodPlayArgStartFromMillis: startFrom != null ? startFrom.inMilliseconds : 0
+        _nativeMethodPlayArgStartFromMillis:
+            startFrom != null ? startFrom.inMilliseconds : 0
       },
     );
   }
@@ -80,7 +83,9 @@ class NativeAudio {
   void seekTo(Duration time) {
     _invokeNativeMethod(
       _nativeMethodSeekTo,
-      arguments: <String, dynamic>{_nativeMethodSeekToArgTimeInMillis: time.inMilliseconds},
+      arguments: <String, dynamic>{
+        _nativeMethodSeekToArgTimeInMillis: time.inMilliseconds
+      },
     );
   }
 
@@ -114,9 +119,13 @@ class NativeAudio {
     _channel.setMethodCallHandler((methodCall) {
       switch (methodCall.method) {
         case _flutterMethodOnLoaded:
-          final int durationInMillis = methodCall.arguments[_flutterMethodOnLoadedArgTotalDurationInMillis];
-          final bool startedAutomatically = methodCall.arguments[_flutterMethodOnLoadedArgStartedAutomatically];
-          if (onLoaded != null) onLoaded(Duration(milliseconds: durationInMillis), startedAutomatically);
+          final int durationInMillis = methodCall
+              .arguments[_flutterMethodOnLoadedArgTotalDurationInMillis];
+          final bool startedAutomatically = methodCall
+              .arguments[_flutterMethodOnLoadedArgStartedAutomatically];
+          if (onLoaded != null)
+            onLoaded(
+                Duration(milliseconds: durationInMillis), startedAutomatically);
           break;
 
         case _flutterMethodOnResumed:
@@ -137,7 +146,8 @@ class NativeAudio {
 
         case _flutterMethodOnProgressChanged:
           int currentTimeInMillis = methodCall.arguments;
-          if (onProgressChanged != null) onProgressChanged(Duration(milliseconds: currentTimeInMillis));
+          if (onProgressChanged != null)
+            onProgressChanged(Duration(milliseconds: currentTimeInMillis));
           break;
       }
 
@@ -145,7 +155,8 @@ class NativeAudio {
     });
   }
 
-  Future _invokeNativeMethod(String method, {Map<String, dynamic> arguments}) async {
+  Future _invokeNativeMethod(String method,
+      {Map<String, dynamic> arguments}) async {
     try {
       await _channel.invokeMethod(method, arguments);
     } on PlatformException catch (e) {
