@@ -1,3 +1,7 @@
+## 0.2.1
+
+* Stop calling `onResumed` as soon as the audio loads and starts playing if `startAutomatically=true` (introduced in 0.2.0), and instead return `startedAutomatically` as a parameter of `onLoaded`.
+
 ## 0.2.0
 
 * Adds `startAutomatically` and `startFrom` fields to play function. Note that as of this version, if `startAutomatically=true`, `onResumed` is now called as soon as the audio loads and starts playing.

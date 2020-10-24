@@ -6,7 +6,7 @@ import android.util.Log
 import java.util.concurrent.TimeUnit
 
 class AudioPlayer(
-        private val onLoaded: ((duration: Long) -> Unit)? = null,
+        private val onLoaded: ((totalDurationInMillis: Long, startedAutomatically: Boolean) -> Unit)? = null,
         private val onResumed: (() -> Unit)? = null,
         private var onPaused: (() -> Unit)? = null,
         private var onStopped: (() -> Unit)? = null,
@@ -20,7 +20,7 @@ class AudioPlayer(
     private var currentProgress = 0L
     private var isLoaded = false
 
-    fun play(url: String, startWhenPrepared: Boolean = true, startFromMillis: Long = 0L) {
+    fun play(url: String, startAutomatically: Boolean = true, startFromMillis: Long = 0L) {
         if (mediaPlayer == null) mediaPlayer = MediaPlayer()
 
         mediaPlayer?.apply {
@@ -33,13 +33,13 @@ class AudioPlayer(
                 isLoaded = true
 
                 // Notify callback
-                onLoaded?.invoke(duration.toLong())
+                onLoaded?.invoke(duration.toLong(), startAutomatically)
 
                 // Seek if start time is not 0
                 if (startFromMillis > 0) seekTo(startFromMillis)
 
                 // Start audio once loaded
-                if (startWhenPrepared) resume()
+                if (startAutomatically) resume(notifyListener = false)
             }
 
             setOnCompletionListener {
@@ -58,11 +58,11 @@ class AudioPlayer(
         loadAudio(url)
     }
 
-    fun resume() {
+    fun resume(notifyListener: Boolean = true) {
         mediaPlayer?.apply {
             if (isLoaded && !isPlaying) {
                 start()
-                onResumed?.invoke()
+                if (notifyListener) onResumed?.invoke()
             }
         }
 

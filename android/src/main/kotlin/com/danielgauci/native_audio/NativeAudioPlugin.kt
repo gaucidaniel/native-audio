@@ -43,6 +43,8 @@ class NativeAudioPlugin(
         private const val NATIVE_METHOD_SET_SKIP_TIME_ARG_FORWARD_MILLIS = "forwardMillis"
         private const val NATIVE_METHOD_SET_SKIP_TIME_ARG_BACKWARD_MILLIS = "backwardMillis"
         private const val FLUTTER_METHOD_ON_LOADED = "onLoaded"
+        private const val FLUTTER_METHOD_ON_LOADED_ARG_STARTED_AUTOMATICALLY = "startedAutomatically"
+        private const val FLUTTER_METHOD_ON_LOADED_ARG_TOTAL_DURATION_IN_MILLIS = "totalDurationInMillis"
         private const val FLUTTER_METHOD_ON_PROGRESS_CHANGED = "onProgressChanged"
         private const val FLUTTER_METHOD_ON_RESUMED = "onResumed"
         private const val FLUTTER_METHOD_ON_PAUSED = "onPaused"
@@ -166,9 +168,12 @@ class NativeAudioPlugin(
     private fun bindAudioServiceWithChannel(service: AudioService) {
         service.apply {
             // Notify flutter with audio updates
-            onLoaded = {
+            onLoaded = { totalDurationInMillis, startedAutomatically ->
                 try {
-                    channel.invokeMethod(FLUTTER_METHOD_ON_LOADED, it)
+                    channel.invokeMethod(FLUTTER_METHOD_ON_LOADED, mapOf(
+                            FLUTTER_METHOD_ON_LOADED_ARG_TOTAL_DURATION_IN_MILLIS to totalDurationInMillis,
+                            FLUTTER_METHOD_ON_LOADED_ARG_STARTED_AUTOMATICALLY to startedAutomatically
+                    ))
                 } catch (e: Exception) {
                     Log.e(this::class.java.simpleName, e.message, e)
                 }

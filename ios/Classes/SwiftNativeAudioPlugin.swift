@@ -8,7 +8,8 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     
     private static let channelName = "com.danielgauci.native_audio"
     private let flutterMethodOnLoaded = "onLoaded"
-    private let flutterMethodOnLoadedArgDuration = "duration"
+    private let flutterMethodOnLoadedArgTotalDuration = "totalDurationInMillis"
+    private let flutterMethodOnLoadedArgStartedAutomatically = "startedAutomatically"
     private let flutterMethodOnProgressChanged = "onProgressChanged"
     private let flutterMethodOnProgressChangedArgCurrentTime = "currentTime"
     private let flutterMethodOnResumed = "onResumed"
@@ -30,7 +31,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     private var isReadyToPlay = false
     private var isSeeking = false
     private var currentItemStartsAutomatically = false
-
+    
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
         let instance = SwiftNativeAudioPlugin(withChannel: channel)
@@ -123,7 +124,13 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                 
                 totalDurationInMillis = Int(1000 * durationInSeconds)
                 
-                flutterChannel.invokeMethod(flutterMethodOnLoaded, arguments: Int(totalDurationInMillis))
+                flutterChannel.invokeMethod(
+                    flutterMethodOnLoaded,
+                    arguments: [
+                        self.flutterMethodOnLoadedArgTotalDuration: Int(totalDurationInMillis),
+                        self.flutterMethodOnLoadedArgStartedAutomatically: currentItemStartsAutomatically
+                    ]
+                )
                 
                 // Update control center
                 MPNowPlayingInfoCenter.default().nowPlayingInfo![MPMediaItemPropertyPlaybackDuration] = durationInSeconds
@@ -133,7 +140,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
                 
                 // Start playback if requested
                 if (currentItemStartsAutomatically){
-                    resume()
+                    resume(notifyFlutterChannel: false)
                 }
                 
             case .failed:

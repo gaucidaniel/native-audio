@@ -58,9 +58,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _listenForAudioEvents() {
-    _audio.onLoaded = (audioDuration) {
+    _audio.onLoaded = (totalDuration, startedAutomatically) {
       setState(() {
         _isLoaded = true;
+        _isPlaying = startedAutomatically;
         _status = "loaded";
       });
     };

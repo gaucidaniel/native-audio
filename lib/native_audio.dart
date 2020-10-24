@@ -24,13 +24,15 @@ class NativeAudio {
   static const _nativeMethodSetSkipTimeArgBackwardMillis = "backwardMillis";
   static const _nativeMethodRelease = "release";
   static const _flutterMethodOnLoaded = "onLoaded";
+  static const _flutterMethodOnLoadedArgTotalDurationInMillis = "totalDurationInMillis";
+  static const _flutterMethodOnLoadedArgStartedAutomatically = "startedAutomatically";
   static const _flutterMethodOnResumed = "onResumed";
   static const _flutterMethodOnPaused = "onPaused";
   static const _flutterMethodOnStopped = "onStopped";
   static const _flutterMethodOnProgressChanged = "onProgressChanged";
   static const _flutterMethodOnCompleted = "onCompleted";
 
-  Function(Duration) onLoaded;
+  Function(Duration totalDuration, bool startedAutomatically) onLoaded;
   Function() onResumed;
   Function() onPaused;
   Function() onStopped;
@@ -112,8 +114,9 @@ class NativeAudio {
     _channel.setMethodCallHandler((methodCall) {
       switch (methodCall.method) {
         case _flutterMethodOnLoaded:
-          int durationInMillis = methodCall.arguments;
-          if (onLoaded != null) onLoaded(Duration(milliseconds: durationInMillis));
+          final int durationInMillis = methodCall.arguments[_flutterMethodOnLoadedArgTotalDurationInMillis];
+          final bool startedAutomatically = methodCall.arguments[_flutterMethodOnLoadedArgStartedAutomatically];
+          if (onLoaded != null) onLoaded(Duration(milliseconds: durationInMillis), startedAutomatically);
           break;
 
         case _flutterMethodOnResumed:

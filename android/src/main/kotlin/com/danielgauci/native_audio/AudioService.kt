@@ -43,7 +43,7 @@ class AudioService : Service() {
     }
 
     // TODO: Confirm that this does not leak the activity
-    var onLoaded: ((Long) -> Unit)? = null
+    var onLoaded: ((Long, Boolean) -> Unit)? = null
     var onProgressChanged: ((Long) -> Unit)? = null
     var onResumed: (() -> Unit)? = null
     var onPaused: (() -> Unit)? = null
@@ -125,9 +125,9 @@ class AudioService : Service() {
 
     private val audioPlayer by lazy {
         AudioPlayer(
-                onLoaded = {
-                    durationInMillis = it
-                    onLoaded?.invoke(it)
+                onLoaded = { totalDurationInMillis, startedAutomatically ->
+                    durationInMillis = totalDurationInMillis
+                    onLoaded?.invoke(totalDurationInMillis, startedAutomatically)
 
                     metadata.putLong(METADATA_KEY_DURATION, durationInMillis)
                     session.setMetadata(metadata.build())
