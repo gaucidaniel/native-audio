@@ -1,3 +1,7 @@
+## 0.2.2
+
+* Fix audio stopping rather than pausing when some bluetooth devices are switched off
+
 ## 0.2.1
 
 * Stop calling `onResumed` as soon as the audio loads and starts playing if `startAutomatically=true` (introduced in 0.2.0), and instead return `startedAutomatically` as a parameter of `onLoaded`.
