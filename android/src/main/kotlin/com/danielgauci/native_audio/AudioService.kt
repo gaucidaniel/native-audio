@@ -63,6 +63,10 @@ class AudioService : Service() {
     private val session by lazy {
         MediaSessionCompat(this, MEDIA_SESSION_TAG).apply {
             setCallback(object : MediaSessionCompat.Callback() {
+                // onStop is intentionally not overridden. This callback is usually called when a
+                // bluetooth device is switched off, in which case we want to pause audio, rather
+                // than stop it. As such, there is no need to override it and manually call stop().
+
                 override fun onMediaButtonEvent(mediaButtonEvent: Intent): Boolean {
                     // Handle play/pause events manually since onPlay/onPause are not always called on bluetooth devices
                     val keyEvent = mediaButtonEvent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
@@ -84,11 +88,6 @@ class AudioService : Service() {
                     }
 
                     return super.onMediaButtonEvent(mediaButtonEvent)
-                }
-
-                override fun onStop() {
-                    super.onStop()
-                    stop()
                 }
 
                 override fun onSeekTo(pos: Long) {
