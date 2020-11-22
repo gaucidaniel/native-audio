@@ -233,7 +233,6 @@ class AudioService : Service() {
 
         session.isActive = true
         currentPlaybackState = if (startAutomatically) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
-        updatePlaybackState()
 
         showNotification(
                 title = title ?: "",
@@ -241,6 +240,8 @@ class AudioService : Service() {
                 album = album ?: "",
                 imageUrl = imageUrl ?: ""
         )
+
+        updatePlaybackState()
     }
 
     fun resume() {
