@@ -1,3 +1,7 @@
+## 0.2.7
+
+* Fix incorrect notification state when `startAutomatically=false`
+
 ## 0.2.6
 
 * Fix incorrect playback state showing in notification on Android
