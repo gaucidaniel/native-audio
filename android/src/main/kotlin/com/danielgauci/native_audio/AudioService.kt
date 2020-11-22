@@ -226,12 +226,12 @@ class AudioService : Service() {
             startAutomatically: Boolean = true,
             startFromMillis: Long = 0L
     ) {
-        requestFocus()
+        if (startAutomatically) requestFocus()
 
         audioPlayer.play(url, startAutomatically, startFromMillis)
 
         session.isActive = true
-        currentPlaybackState = PlaybackStateCompat.STATE_PLAYING
+        currentPlaybackState = if (startAutomatically) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
         updatePlaybackState()
 
         showNotification(
