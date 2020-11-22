@@ -1,3 +1,7 @@
+## 0.2.3
+
+* Fix Android audio focus issues when `startAutomatically=false`
+
 ## 0.2.2
 
 * Fix audio stopping rather than pausing when some bluetooth devices are switched off
