@@ -1,3 +1,7 @@
+## 0.2.6
+
+* Fix incorrect playback state showing in notification on Android
+
 ## 0.2.5
 
 * Fix Android build issues introduced with the move to SDK 30
