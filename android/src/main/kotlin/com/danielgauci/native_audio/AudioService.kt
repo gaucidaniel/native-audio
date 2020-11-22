@@ -238,7 +238,8 @@ class AudioService : Service() {
                 title = title ?: "",
                 artist = artist ?: "",
                 album = album ?: "",
-                imageUrl = imageUrl ?: ""
+                imageUrl = imageUrl ?: "",
+                isPlaying = startAutomatically
         )
 
         updatePlaybackState()
@@ -318,7 +319,8 @@ class AudioService : Service() {
             artist: String,
             album: String,
             @ColorInt notificationColor: Int? = null,
-            image: Bitmap? = null
+            image: Bitmap? = null,
+            isPlaying: Boolean = true
     ) {
         metadata.putString(METADATA_KEY_TITLE, title)
                 .putString(METADATA_KEY_ARTIST, artist)
@@ -354,7 +356,7 @@ class AudioService : Service() {
             if (notificationColor != null) color = notificationColor
 
             // Add play/pause action
-            setNotificationButtons(this)
+            setNotificationButtons(this, isPlaying)
         }
     }
 
@@ -389,10 +391,16 @@ class AudioService : Service() {
         }
     }
 
-    private fun showNotification(title: String, artist: String, album: String, imageUrl: String? = null) {
+    private fun showNotification(
+            title: String,
+            artist: String,
+            album: String,
+            imageUrl: String? = null,
+            isPlaying: Boolean = true
+    ) {
         if (imageUrl.isNullOrBlank()) {
             // No image is set, show notification
-            updateNotificationBuilder(title, artist, album)
+            updateNotificationBuilder(title, artist, album, isPlaying = isPlaying)
             startForeground(NOTIFICATION_ID, notificationBuilder.build())
             isNotificationShown = true
         } else {
@@ -411,7 +419,8 @@ class AudioService : Service() {
                                             artist = artist,
                                             album = album,
                                             notificationColor = color,
-                                            image = resource
+                                            image = resource,
+                                            isPlaying = isPlaying
                                     )
 
                                     startForeground(NOTIFICATION_ID, notificationBuilder.build())
@@ -422,7 +431,8 @@ class AudioService : Service() {
                                             title = title,
                                             artist = artist,
                                             album = album,
-                                            image = resource
+                                            image = resource,
+                                            isPlaying = isPlaying
                                     )
 
                                     startForeground(NOTIFICATION_ID, notificationBuilder.build())
@@ -435,7 +445,7 @@ class AudioService : Service() {
                             super.onLoadFailed(errorDrawable)
 
                             // Failed to load image, show notification
-                            updateNotificationBuilder(title, artist, album)
+                            updateNotificationBuilder(title, artist, album, isPlaying = isPlaying)
                             startForeground(NOTIFICATION_ID, notificationBuilder.build())
                             isNotificationShown = true
                         }
