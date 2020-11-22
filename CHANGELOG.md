@@ -1,3 +1,7 @@
+## 0.2.5
+
+* Fix Android build issues introduced with the move to SDK 30
+
 ## 0.2.4
 
 * Update Android compileSdkVersion to 30
