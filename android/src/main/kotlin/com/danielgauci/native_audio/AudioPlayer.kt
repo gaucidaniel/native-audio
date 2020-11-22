@@ -135,7 +135,7 @@ class AudioPlayer(
                     currentProgress = progress
                 }
 
-                progressCallbackHandler?.postDelayed(progressCallback, TimeUnit.SECONDS.toMillis(1))
+                progressCallbackHandler?.postDelayed(progressCallback!!, TimeUnit.SECONDS.toMillis(1))
             }
         }
     }
@@ -146,12 +146,15 @@ class AudioPlayer(
 
         // Setup progress callback
         initProgressCallback()
-        progressCallbackHandler?.postDelayed(progressCallback, TimeUnit.SECONDS.toMillis(1))
+        progressCallbackHandler?.postDelayed(checkNotNull(progressCallback), TimeUnit.SECONDS.toMillis(1))
     }
 
     private fun stopListeningForProgress() {
-        progressCallbackHandler?.removeCallbacks(progressCallback)
+        progressCallback?.let {
+            progressCallbackHandler?.removeCallbacks(it)
+            progressCallback = null
+        }
+
         progressCallbackHandler = null
-        progressCallback = null
     }
 }

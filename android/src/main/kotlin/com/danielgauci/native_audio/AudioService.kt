@@ -69,20 +69,21 @@ class AudioService : Service() {
 
                 override fun onMediaButtonEvent(mediaButtonEvent: Intent): Boolean {
                     // Handle play/pause events manually since onPlay/onPause are not always called on bluetooth devices
-                    val keyEvent = mediaButtonEvent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
-                    if (keyEvent.action == ACTION_DOWN) {
-                        when (keyEvent.keyCode) {
-                            KEYCODE_MEDIA_PLAY -> {
-                                resume()
-                                return true
-                            }
-                            KEYCODE_MEDIA_PAUSE -> {
-                                pause()
-                                return true
-                            }
-                            KEYCODE_MEDIA_PLAY_PAUSE -> {
-                                if (isPlaying()) pause() else resume()
-                                return true
+                    mediaButtonEvent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)?.let { keyEvent ->
+                        if (keyEvent.action == ACTION_DOWN) {
+                            when (keyEvent.keyCode) {
+                                KEYCODE_MEDIA_PLAY -> {
+                                    resume()
+                                    return true
+                                }
+                                KEYCODE_MEDIA_PAUSE -> {
+                                    pause()
+                                    return true
+                                }
+                                KEYCODE_MEDIA_PLAY_PAUSE -> {
+                                    if (isPlaying()) pause() else resume()
+                                    return true
+                                }
                             }
                         }
                     }

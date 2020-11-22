@@ -155,7 +155,7 @@ class NativeAudioPlugin(
 
             val serviceIntent = Intent(context, AudioService::class.java)
             if (!context.isServiceRunning(AudioService::class.java)) context.startService(serviceIntent)
-            context.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+            context.bindService(serviceIntent, checkNotNull(serviceConnection), Context.BIND_AUTO_CREATE)
 
             // Return and wait for service to be connected
             return
