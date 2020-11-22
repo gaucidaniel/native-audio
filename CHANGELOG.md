@@ -1,3 +1,7 @@
+## 0.2.4
+
+* Update Android compileSdkVersion to 30
+
 ## 0.2.3
 
 * Fix Android audio focus issues when `startAutomatically=false`
