@@ -1,3 +1,7 @@
+## 0.2.9
+
+* Fix remaining issues with seeking when paused on iOS
+
 ## 0.2.8
 
 * Fix issue with seeking forward and backward when paused on iOS

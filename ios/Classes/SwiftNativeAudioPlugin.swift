@@ -305,6 +305,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             if (isPlaying) {pause(notifyFlutterChannel: false)}
             
             self.isSeeking = true
+            self.currentProgressInMillis = timeInMillis
             self.flutterChannel.invokeMethod(self.flutterMethodOnProgressChanged, arguments: timeInMillis)
             
             // Add a second to the requested time since AVPlayer will seek to a second before the requested time
