@@ -1,3 +1,7 @@
+## 0.2.8
+
+* Fix issue with seeking forward and backward when paused on iOS
+
 ## 0.2.7
 
 * Fix incorrect notification state when `startAutomatically=false`
