@@ -264,7 +264,18 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
     }
     
     private func skipForward() -> Bool {
-        seekTo(timeInMillis: currentProgressInMillis + skipForwardTimeInMillis)
+        let seekTime = currentProgressInMillis + skipForwardTimeInMillis
+        seekTo(timeInMillis: seekTime)
+
+        // Update current progress manually is paused as it is only updated automatically when playing
+        if let player = avPlayer {
+            let isPlaying = player.rate > 0.0
+            if (!isPlaying) {
+                currentProgressInMillis = seekTime
+                flutterChannel.invokeMethod(flutterMethodOnProgressChanged, arguments: seekTime)
+            }
+        }
+        
         return true
     }
     
@@ -272,7 +283,18 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         // If trying to skip backward more than the start of the audio, manually seek to 0s to
         // avoid receiving a progress update with a negative time
         let seekTime = currentProgressInMillis - skipBackwardTimeInMillis
-        seekTo(timeInMillis: seekTime < 0 ? 0 : seekTime)
+        let safeSeekTime = seekTime < 0 ? 0 : seekTime
+        seekTo(timeInMillis: safeSeekTime)
+        
+        // Update current progress manually is paused as it is only updated automatically when playing
+        if let player = avPlayer {
+            let isPlaying = player.rate > 0.0
+            if (!isPlaying) {
+                currentProgressInMillis = safeSeekTime
+                flutterChannel.invokeMethod(flutterMethodOnProgressChanged, arguments: safeSeekTime)
+            }
+        }
+        
         return true
     }
     
