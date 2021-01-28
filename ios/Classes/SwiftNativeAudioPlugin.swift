@@ -56,8 +56,9 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
             let imageUrl =  arguments["imageUrl"] as! String
             let startAutomatically =  arguments["startAutomatically"] as! Bool
             let startFromMillis =  arguments["startFromMillis"] as! Int
-            
-            self.play(url: url, title: title, artist: artist, album: album, imageUrl: imageUrl, startAutomatically: startAutomatically, startFromMillis: startFromMillis)
+            let isLocal =  arguments["isLocal"] as! Bool
+
+            self.play(url: url, title: title, artist: artist, album: album, imageUrl: imageUrl, startAutomatically: startAutomatically, startFromMillis: startFromMillis, isLocal: isLocal)
             
         case "resume":
             self.resume()
@@ -159,7 +160,8 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         album: String,
         imageUrl: String,
         startAutomatically: Bool,
-        startFromMillis: Int
+        startFromMillis: Int,
+        isLocal: Bool
     ) {
         // Pause any ongoing playback and clean up resources. stop() is not called since we do not want to notify the Flutter channel
         if (avPlayer != nil) {avPlayer.pause()}
@@ -169,7 +171,7 @@ public class SwiftNativeAudioPlugin: NSObject, FlutterPlugin {
         updateNowPlayingInfoCenter(title: title, artist: artist, album: album, imageUrl: imageUrl)
         
         // Setup player item
-        guard let audioUrl = URL.init(string: url) else { return }
+        let audioUrl = isLocal ? URL(fileURLWithPath: url) : URL(string: url)!
         avPlayerItem = AVPlayerItem.init(url: audioUrl)
         
         // Observe player item status
