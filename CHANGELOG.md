@@ -1,3 +1,7 @@
+## 0.2.10
+
+* Add `isLocal` parameter to the `play` method. While this parameter is not required for local playback on Android, it must be set for iOS and as such it is always recommended to be set when playing local files.
+
 ## 0.2.9
 
 * Fix remaining issues with seeking when paused on iOS
