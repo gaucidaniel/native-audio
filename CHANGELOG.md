@@ -1,3 +1,7 @@
+## 0.3
+
+* BREAKING: Migrate to (v2 Android embedding)[https://github.com/flutter/flutter/wiki/Upgrading-pre-1.12-Android-projects]
+
 ## 0.2.10
 
 * Add `isLocal` parameter to the `play` method. While this parameter is not required for local playback on Android, it must be set for iOS and as such it is always recommended to be set when playing local files.
