@@ -1,4 +1,4 @@
-package com.danielgauci.native_audio_example
+package com.danielgauci.example
 
 import io.flutter.app.FlutterApplication
 import io.flutter.plugin.common.PluginRegistry

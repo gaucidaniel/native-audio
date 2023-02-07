@@ -36,6 +36,7 @@ class _MyAppState extends State<MyApp> {
     'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
     'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
   ];
+  
   @override
   void initState() {
     super.initState();
@@ -69,7 +70,7 @@ class _MyAppState extends State<MyApp> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   SizedBox(height: 48),
-                  (state.value?.isBuffering ?? false)
+                  (state.value.isBuffering ?? false)
                       ? Center(
                           child: SizedBox.fromSize(
                               size: Size.square(30),
@@ -77,10 +78,10 @@ class _MyAppState extends State<MyApp> {
                                 strokeWidth: 1,
                               )))
                       : PlayPauseButton(
-                          isPlaying: state.value?.isPlaying,
-                          onPressed: () => !(state.value?.isReady ?? false)
+                          isPlaying: state.value.isPlaying,
+                          onPressed: () => !(state.value.isReady ?? false)
                               ? _playSampleAudio(_audioList[_currentIndex])
-                              : (state.value?.isPlaying ?? false)
+                              : (state.value.isPlaying ?? false)
                                   ? _audio.pause()
                                   : _audio.resume()),
                   ProgressIndicator(),
@@ -95,20 +96,20 @@ class _MyAppState extends State<MyApp> {
                                   _playSampleAudio(_audioList[_currentIndex]);
                                 }
                               : null),
-                      if (state.value?.isReady ?? false)
+                      if (state.value.isReady ?? false)
                         IconButton(
                             icon: Icon(Icons.replay_30),
-                            onPressed: state.value?.position == null
+                            onPressed: state.value.position == null
                                 ? null
                                 : () => _audio.seekTo(state.value.position -
                                     Duration(seconds: 30))),
-                      if (state.value?.isReady ?? false)
+                      if (state.value.isReady ?? false)
                         IconButton(
                             icon: Icon(Icons.stop),
                             onPressed: () => _audio.stop()),
                       IconButton(
                           icon: Icon(Icons.forward_30),
-                          onPressed: state.value?.position == null
+                          onPressed: state.value.position == null
                               ? null
                               : () => _audio.seekTo(state.value.position +
                                   Duration(seconds: 30))),
@@ -154,9 +155,9 @@ class _MyAppState extends State<MyApp> {
 }
 
 class PlayPauseButton extends StatefulWidget {
-  final bool isPlaying;
-  final VoidCallback onPressed;
-  const PlayPauseButton({Key key, this.isPlaying, this.onPressed})
+  final bool? isPlaying;
+  final VoidCallback? onPressed;
+  const PlayPauseButton({Key? key, this.isPlaying, this.onPressed})
       : super(key: key);
   @override
   _PlayPauseButtonState createState() => _PlayPauseButtonState();
@@ -164,7 +165,7 @@ class PlayPauseButton extends StatefulWidget {
 
 class _PlayPauseButtonState extends State<PlayPauseButton>
     with SingleTickerProviderStateMixin {
-  AnimationController _controller;
+  late AnimationController _controller;
   @override
   void initState() {
     super.initState();
@@ -177,7 +178,7 @@ class _PlayPauseButtonState extends State<PlayPauseButton>
 
   @override
   void didChangeDependencies() {
-    if (widget.isPlaying)
+    if (widget.isPlaying!)
       _controller.forward();
     else
       _controller.reverse();
@@ -186,7 +187,7 @@ class _PlayPauseButtonState extends State<PlayPauseButton>
   }
 
   void _playPauseListener() {
-    if (widget.isPlaying) {
+    if (widget.isPlaying!) {
       if (_controller.status.index < 3 && !_controller.isAnimating)
         _controller.forward();
     } else {
@@ -225,22 +226,22 @@ class _VideoControlsState extends State<ProgressIndicator> {
   final BehaviorSubject<String> _positionSubject =
       BehaviorSubject.seeded('0.0');
 
-  NativeAudio _audioController;
-  double _slidePosition;
+  NativeAudio? _audioController;
+  double? _slidePosition;
 
   @override
   void didChangeDependencies() {
     _audioController = Provider.of<NativeAudio>(context);
-    _audioController.addListener(_positionListener);
+    _audioController!.addListener(_positionListener);
     super.didChangeDependencies();
   }
 
   void _positionListener() {
     _positionSubject.add(
-        _formatDuration(_audioController?.value?.position?.inMilliseconds) ??
+        _formatDuration(_audioController?.value.position.inMilliseconds) ??
             '0.0');
     _durationSubject.add(
-        _formatDuration(_audioController?.value?.duration?.inMilliseconds) ??
+        _formatDuration(_audioController?.value.duration?.inMilliseconds) ??
             '');
   }
 
@@ -267,28 +268,28 @@ class _VideoControlsState extends State<ProgressIndicator> {
   Widget build(BuildContext context) {
     // print('build  ${_audioController.value}');
     double duration =
-        _audioController.value?.duration?.inMilliseconds?.toDouble() ?? 1.0;
+        _audioController!.value.duration?.inMilliseconds.toDouble() ?? 1.0;
     double position =
-        _audioController.value?.position?.inMilliseconds?.toDouble() ?? 0.0;
+        _audioController!.value.position.inMilliseconds.toDouble() ?? 0.0;
     return Container(
       padding: EdgeInsets.only(left: 5, right: 5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          StreamBuilder(
+          StreamBuilder<String>(
               stream: _positionSubject.stream,
               builder: (context, snapshot) => Text(snapshot.data ?? '0.0',
-                  style: Theme.of(context).textTheme.caption.copyWith())),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith())),
           Expanded(
               child: SliderTheme(
             data: SliderTheme.of(context).copyWith(
-              activeTrackColor: Theme.of(context).accentColor,
+              activeTrackColor: Theme.of(context).primaryColor,
               inactiveTrackColor:
-                  Theme.of(context).accentColor.withOpacity(0.6),
+                  Theme.of(context).primaryColor.withOpacity(0.6),
               trackShape: RoundedRectSliderTrackShape(),
               trackHeight: 1.0,
               thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10.0),
-              thumbColor: Theme.of(context).accentColor,
+              thumbColor: Theme.of(context).primaryColor,
               overlayColor: Colors.red.withAlpha(32),
               showValueIndicator: ShowValueIndicator.always,
               overlayShape: RoundSliderOverlayShape(overlayRadius: 28.0),
@@ -296,7 +297,7 @@ class _VideoControlsState extends State<ProgressIndicator> {
               activeTickMarkColor: Colors.red[700],
               inactiveTickMarkColor: Colors.red[100],
               valueIndicatorShape: PaddleSliderValueIndicatorShape(),
-              valueIndicatorColor: Theme.of(context).accentColor,
+              valueIndicatorColor: Theme.of(context).primaryColor,
               valueIndicatorTextStyle: TextStyle(
                 color: Colors.white,
               ),
@@ -305,17 +306,17 @@ class _VideoControlsState extends State<ProgressIndicator> {
               value: _slidePosition ?? min(position, duration),
               max: duration,
               min: 0,
-              label: _formatDuration((_slidePosition?.toInt() ?? 0) ?? '0.0'),
+              label: _formatDuration((_slidePosition?.toInt() ?? 0) ?? '0.0' as int?),
               onChangeEnd: (value) {
                 //  setState(() {
-                _audioController.seekTo(Duration(milliseconds: value.toInt()));
+                _audioController!.seekTo(Duration(milliseconds: value.toInt()));
                 Future.delayed(Duration(milliseconds: 300), () {
                   _slidePosition = null;
                 });
 
                 //  });
               },
-              onChanged: (_audioController.value?.isReady ?? false)
+              onChanged: (_audioController!.value.isReady ?? false)
                   ? (value) {
                       print('changed $value');
                       setState(() {
@@ -325,17 +326,17 @@ class _VideoControlsState extends State<ProgressIndicator> {
                   : null,
             ),
           )),
-          StreamBuilder(
+          StreamBuilder<String>(
               stream: _durationSubject.stream,
               builder: (context, snapshot) => Text(snapshot.data ?? '',
-                  style: Theme.of(context).textTheme.caption.copyWith())),
+                  style: Theme.of(context).textTheme.titleSmall!.copyWith())),
         ],
       ),
     );
     // Chewie(controller: _playerController);
   }
 
-  String _formatDuration(int milliSeconds) {
+  String? _formatDuration(int? milliSeconds) {
     if (milliSeconds == null) return null;
     int seconds = milliSeconds ~/ 1000;
     final int hours = seconds ~/ 3600;

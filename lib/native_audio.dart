@@ -10,7 +10,7 @@ class NativeAudioValue {
   /// Constructs a audio with the given values. Only [duration] is required. The
   /// rest will initialize with default values when unset.
   NativeAudioValue({
-    @required this.duration,
+    required this.duration,
     this.onCompletedAction,
     this.position = const Duration(),
     this.buffered = 0.0,
@@ -42,13 +42,13 @@ class NativeAudioValue {
   /// The total duration of the audio.
   ///
   /// Is null when [initialized] is false.
-  final Duration duration;
+  final Duration? duration;
 
   /// The current playback position.
   final Duration position;
 
   ///called when an audio is done playing,
-  final Function onCompletedAction;
+  final Function? onCompletedAction;
 
   /// True if the audio is playing. False if it's paused.
   final bool isPlaying;
@@ -67,7 +67,7 @@ class NativeAudioValue {
   /// A description of the error if present.
   ///
   /// If [hasError] is false this is [null].
-  final String errorDescription;
+  final String? errorDescription;
 
   /// Indicates whether or not the audio has been loaded and is ready to play.
   bool get initialized => duration != null;
@@ -79,15 +79,15 @@ class NativeAudioValue {
   /// Returns a new instance that has the same values as this current instance,
   /// except for any overrides passed in as arguments to [copyWidth].
   NativeAudioValue copyWith({
-    Duration duration,
-    Duration position,
-    bool isPlaying,
-    bool isLooping,
-    bool isBuffering,
-    bool isReady,
-    double volume,
-    double buffered,
-    String errorDescription,
+    Duration? duration,
+    Duration? position,
+    bool? isPlaying,
+    bool? isLooping,
+    bool? isBuffering,
+    bool? isReady,
+    double? volume,
+    double? buffered,
+    String? errorDescription,
   }) {
     return NativeAudioValue(
       duration: duration ?? this.duration,
@@ -121,20 +121,22 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
   static const _channel = const MethodChannel('com.danielgauci.native_audio');
 
   NativeAudio() : super(NativeAudioValue.uninitialized());
-  StreamSubscription _subscription;
-  Function onCompletionListener;
+  StreamSubscription? _subscription;
+  Function? onCompletionListener;
   bool _hasMethodHandler = false;
   void _initSub() {
-    _subscription =  
+    _subscription =
         Stream.periodic(Duration(milliseconds: 1000)).listen(_playistener);
   }
 
   void play(String url,
-      {String title, String artist, String album, String imageUrl, bool isLooping = false}) async{
-        if(!_hasMethodHandler)
-    _registerMethodCallHandler();
-    if(value.isPlaying)
-      pause();
+      {String? title,
+      String? artist,
+      String? album,
+      String? imageUrl,
+      bool isLooping = false}) async {
+    if (!_hasMethodHandler) _registerMethodCallHandler();
+    if (value.isPlaying) pause();
     _invokeNativeMethod(
       NATIVE_METHOD_PLAY,
       arguments: <String, dynamic>{
@@ -154,8 +156,8 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
     //  value.copyWith(isPlaying: true);
   }
 
-   void pause()async  {
-   await _invokeNativeMethod(NATIVE_METHOD_PAUSE);
+  void pause() async {
+    await _invokeNativeMethod(NATIVE_METHOD_PAUSE);
     //  value.copyWith(isPlaying: false);
   }
 
@@ -165,7 +167,7 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
   void checkStatus(Function(bool) handler) async {
     _channel.setMethodCallHandler((methodCall) async {
       if (methodCall.method == NATIVE_METHOD_SERVICE_STATUS) {
-        bool isRunning = (methodCall.arguments as bool) ?? false;
+        bool isRunning = (methodCall.arguments as bool?) ?? false;
         handler(isRunning);
         if (isRunning) {
           _registerMethodCallHandler();
@@ -182,11 +184,11 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
   }
 
   void stop() {
-      _invokeNativeMethod(NATIVE_METHOD_STOP);
+    _invokeNativeMethod(NATIVE_METHOD_STOP);
     value.copyWith(isReady: false, isBuffering: false, isPlaying: false);
   }
 
-  void _onError(String message) {
+  void _onError(String? message) {
     String val = ERROR_CODES
         .firstWhere(
           (item) => (item.keys.toList()[0] == message),
@@ -210,7 +212,7 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
     // _playistener();
   }
 
-  int _position;
+  int? _position;
   void _playistener([dynamic event]) {
     // print('play listener  $_position ${value?.position?.inSeconds}');
     if (value.isPlaying) {
@@ -234,11 +236,11 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
     if (value == null) value = NativeAudioValue.uninitialized();
     _initSub();
     // Listen to method calls from native
-    _channel.setMethodCallHandler((methodCall) {
+    _channel.setMethodCallHandler((methodCall) async {
       // print('method call ${methodCall.method}');
       switch (methodCall.method) {
         case FLUTTER_METHOD_ON_LOADED:
-          int durationInMillis = methodCall.arguments;
+          int? durationInMillis = methodCall.arguments;
           if (durationInMillis != null)
             value = value.copyWith(
                 isReady: true,
@@ -263,14 +265,14 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
           value = value.copyWith(isBuffering: false);
           break;
         case FLUTTER_METHOD_ON_BUFFER_UPDATE:
-          int val = methodCall.arguments;
+          int? val = methodCall.arguments;
           if (val != null) {
             value = value.copyWith(buffered: val / 100);
           }
 
           break;
         case FLUTTER_METHOD_ON_DURATION:
-          int durationInMillis = methodCall.arguments;
+          int? durationInMillis = methodCall.arguments;
           if (durationInMillis != null) {
             value = value.copyWith(
                 isReady: true,
@@ -281,7 +283,9 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
 
           break;
         case FLUTTER_METHOD_ON_PAUSED:
-          value = value.copyWith(isPlaying: false, );
+          value = value.copyWith(
+            isPlaying: false,
+          );
           _subscription?.pause();
           break;
 
@@ -294,16 +298,16 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
         case FLUTTER_METHOD_ON_COMPLETED:
           value = value.copyWith(isPlaying: false, isBuffering: false);
           stop();
-          if(onCompletionListener != null )onCompletionListener();
-          
+          if (onCompletionListener != null) onCompletionListener!();
+
           // _playistener();
           break;
         case FLUTTER_METHOD_ON_ERROR:
-          String message = methodCall.arguments;
+          String? message = methodCall.arguments;
           _onError(message);
           break;
         case FLUTTER_METHOD_ON_PROGRESS_CHANGED:
-          int currentTimeInMillis = methodCall.arguments;
+          int? currentTimeInMillis = methodCall.arguments;
           if (currentTimeInMillis != null)
             value = value.copyWith(
                 position: Duration(milliseconds: currentTimeInMillis));
@@ -315,11 +319,11 @@ class NativeAudio extends ValueNotifier<NativeAudioValue> {
   }
 
   Future _invokeNativeMethod(String method,
-      {Map<String, dynamic> arguments}) async {
+      {Map<String, dynamic>? arguments}) async {
     try {
       await _channel.invokeMethod(method, arguments);
     } on PlatformException catch (e) {
-      print("Failed to call native method: " + e.message);
+      print("Failed to call native method: " + e.message!);
     }
   }
 }
