@@ -6,13 +6,10 @@ void main() {
   const MethodChannel channel = MethodChannel('com.danielgauci.native_audio');
 
   setUp(() {
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      return true;
-    });
-  });
-
-  tearDown(() {
-    channel.setMockMethodCallHandler(null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      channel,
+      (message) async => true,
+    );
   });
 
   test('play', () async {
