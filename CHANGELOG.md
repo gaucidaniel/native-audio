@@ -1,4 +1,4 @@
-## 0.4.0
+## 1.0.0
 
 - Add support for the latest Flutter version
 
